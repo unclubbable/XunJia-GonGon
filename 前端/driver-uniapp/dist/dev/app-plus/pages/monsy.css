@@ -1,0 +1,368 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.uni-load-more[data-v-154342f4] {
+  display: flex;
+  flex-direction: row;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+.uni-load-more__text[data-v-154342f4] {
+  font-size: 14px;
+  margin-left: 8px;
+}
+.uni-load-more__img[data-v-154342f4] {
+  width: 24px;
+  height: 24px;
+}
+.uni-load-more__img--nvue[data-v-154342f4] {
+  color: #666666;
+}
+.uni-load-more__img--android[data-v-154342f4],
+.uni-load-more__img--ios[data-v-154342f4] {
+  width: 24px;
+  height: 24px;
+  transform: rotate(0deg);
+}
+.uni-load-more__img--android[data-v-154342f4] {
+  animation: loading-ios 1s 0s linear infinite;
+}
+@keyframes loading-android-154342f4 {
+0% {
+    transform: rotate(0deg);
+}
+100% {
+    transform: rotate(360deg);
+}
+}
+.uni-load-more__img--ios-H5[data-v-154342f4] {
+  position: relative;
+  animation: loading-ios-H5-154342f4 1s 0s step-end infinite;
+}
+.uni-load-more__img--ios-H5 uni-image[data-v-154342f4] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+@keyframes loading-ios-H5-154342f4 {
+0% {
+    transform: rotate(0deg);
+}
+8% {
+    transform: rotate(30deg);
+}
+16% {
+    transform: rotate(60deg);
+}
+24% {
+    transform: rotate(90deg);
+}
+32% {
+    transform: rotate(120deg);
+}
+40% {
+    transform: rotate(150deg);
+}
+48% {
+    transform: rotate(180deg);
+}
+56% {
+    transform: rotate(210deg);
+}
+64% {
+    transform: rotate(240deg);
+}
+73% {
+    transform: rotate(270deg);
+}
+82% {
+    transform: rotate(300deg);
+}
+91% {
+    transform: rotate(330deg);
+}
+100% {
+    transform: rotate(360deg);
+}
+}
+.uni-load-more__img--android-MP[data-v-154342f4] {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  transform: rotate(0deg);
+  animation: loading-ios 1s 0s ease infinite;
+}
+.uni-load-more__img--android-MP .uni-load-more__img-icon[data-v-154342f4] {
+  position: absolute;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: solid 2px transparent;
+  border-top: solid 2px #777777;
+  transform-origin: center;
+}
+.uni-load-more__img--android-MP .uni-load-more__img-icon[data-v-154342f4]:nth-child(1) {
+  animation: loading-android-MP-1-154342f4 1s 0s linear infinite;
+}
+.uni-load-more__img--android-MP .uni-load-more__img-icon[data-v-154342f4]:nth-child(2) {
+  animation: loading-android-MP-2-154342f4 1s 0s linear infinite;
+}
+.uni-load-more__img--android-MP .uni-load-more__img-icon[data-v-154342f4]:nth-child(3) {
+  animation: loading-android-MP-3-154342f4 1s 0s linear infinite;
+}
+@keyframes loading-android-154342f4 {
+0% {
+    transform: rotate(0deg);
+}
+100% {
+    transform: rotate(360deg);
+}
+}
+@keyframes loading-android-MP-1-154342f4 {
+0% {
+    transform: rotate(0deg);
+}
+50% {
+    transform: rotate(90deg);
+}
+100% {
+    transform: rotate(360deg);
+}
+}
+@keyframes loading-android-MP-2-154342f4 {
+0% {
+    transform: rotate(0deg);
+}
+50% {
+    transform: rotate(180deg);
+}
+100% {
+    transform: rotate(360deg);
+}
+}
+@keyframes loading-android-MP-3-154342f4 {
+0% {
+    transform: rotate(0deg);
+}
+50% {
+    transform: rotate(270deg);
+}
+100% {
+    transform: rotate(360deg);
+}
+}
+
+.wallet-page[data-v-938a3cc4] {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9eef5 100%);
+  min-height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* 统计卡片网格：两列 + 第二行跨列 */
+.stats-grid[data-v-938a3cc4] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* 普通卡片样式（总订单金额、平台抽成） */
+.stat-card[data-v-938a3cc4] {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 12px 8px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-width: 0;
+}
+
+/* 总收入卡片独立样式：渐变背景、居中、更饱满 */
+.income-card[data-v-938a3cc4] {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #fef9e6 0%, #fff6e0 100%);
+  border: 1px solid rgba(255, 215, 150, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 180, 60, 0.12);
+  justify-content: center;
+  padding: 16px 8px;
+}
+
+/* 总收入图标专属样式 */
+.income-icon-special[data-v-938a3cc4] {
+  background: linear-gradient(135deg, #ffca60 0%, #ff8c00 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
+}
+.stat-icon[data-v-938a3cc4] {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+/* 普通卡片图标颜色 */
+.income-icon[data-v-938a3cc4] {
+  background: #e8f3ff;
+  color: #409eff;
+}
+.order-icon[data-v-938a3cc4] {
+  background: #fef0e6;
+  color: #ff9500;
+}
+.commission-icon[data-v-938a3cc4] {
+  background: #f0e6fa;
+  color: #9c6ade;
+}
+.stat-info[data-v-938a3cc4] {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* 总收入卡片内容紧凑居中 */
+.income-card .stat-info[data-v-938a3cc4] {
+  flex: 0 1 auto;
+}
+.stat-label[data-v-938a3cc4] {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-value[data-v-938a3cc4] {
+  font-weight: bold;
+  color: #1e2a3e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(12px, 4vw, 16px);
+}
+
+/* 总收入金额数字颜色加深突出 */
+.income-value[data-v-938a3cc4] {
+  color: #e67e22;
+  font-size: clamp(14px, 5vw, 20px);
+}
+
+/* 筛选器 */
+.filter-bar[data-v-938a3cc4] {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+.picker-btn[data-v-938a3cc4] {
+  background: white;
+  padding: 8px 16px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.uni-icon-arrowdown[data-v-938a3cc4] {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 滚动区域 */
+.bill-scroll[data-v-938a3cc4] {
+  height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+/* 账单列表项 */
+.bill-item[data-v-938a3cc4] {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+.bill-header[data-v-938a3cc4] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.bill-month[data-v-938a3cc4] {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2c3e50;
+}
+.bill-status[data-v-938a3cc4] {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+.status-success[data-v-938a3cc4] {
+  background: #e6f7e6;
+  color: #52c41a;
+}
+.status-danger[data-v-938a3cc4] {
+  background: #ffe6e6;
+  color: #ff4d4f;
+}
+.bill-details[data-v-938a3cc4] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.detail-row[data-v-938a3cc4] {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #5c6b7e;
+}
+.detail-row .amount[data-v-938a3cc4] {
+  font-weight: 500;
+}
+.detail-row .income[data-v-938a3cc4] {
+  color: #409eff;
+}
+.detail-row .commission[data-v-938a3cc4] {
+  color: #f56c6c;
+}
+.empty-state[data-v-938a3cc4] {
+  text-align: center;
+  padding: 40px 0;
+  color: #999;
+}

@@ -1,0 +1,51 @@
+server:
+  port: 7072
+spring:
+  application:
+    name: driver-gateway
+  redis:
+    host: 000.000.000.000
+    port: 6379
+    password: 000000
+    #用redis的第 0个数据库
+    database: 0
+    timeout: 1800000
+    lettuce:
+      pool:
+        max-active: 20
+        max-wait: -1
+        #最大阻塞等待时间(负数表示没限制)
+        max-idle: 5
+        min-idle: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 000.000.000.000:8848
+    gateway:
+      routes:
+        # service-order
+        - id: service-order
+          uri: lb://service-order
+          predicates:
+            - Path=/order/**
+        # service-driver-user
+        - id: service-driver-user
+          uri: lb://service-driver-user
+          predicates:
+            - Path=/driver-user-money/**,/driver-user/**,/get-driver-info/{driverId},/driver-user-work-status,/driver-user-work-city,/driver-car-binding-relationship,/work-status,/get-car/{cid},/verification-code,/verification-code-check
+        # service-map
+        - id: service-map
+          uri: lb://service-map
+          predicates:
+            - Path=/point/upload
+logging:
+  level:
+    com.taxi.gatewebdriver: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+driver:
+  inpath:     # 不需要认证
+    - /noauth
+    - /verification-code
+    - /verification-code-check
+    - /order/grab

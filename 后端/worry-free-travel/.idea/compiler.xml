@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="service-driver-user" />
+        <module name="gateweb-driver" />
+        <module name="service-order" />
+        <module name="service-pay" />
+        <module name="internal-common" />
+        <module name="service-sse-push" />
+        <module name="service-verificationcode" />
+        <module name="service-map" />
+        <module name="service-price" />
+        <module name="service-dispatch" />
+        <module name="gateweb-passenger" />
+        <module name="service-boss-user" />
+        <module name="service-passenger-user" />
+        <module name="gateweb-boss" />
+        <module name="service-api" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="19">
+      <module name="user-driver" target="17" />
+      <module name="user-passenger" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="gateweb-boss" options="-parameters" />
+      <module name="gateweb-driver" options="-parameters" />
+      <module name="gateweb-passenger" options="-parameters" />
+      <module name="internal-common" options="-parameters" />
+      <module name="service-api" options="-parameters" />
+      <module name="service-boss-user" options="-parameters" />
+      <module name="service-dispatch" options="-parameters" />
+      <module name="service-driver-user" options="-parameters" />
+      <module name="service-map" options="-parameters" />
+      <module name="service-order" options="-parameters" />
+      <module name="service-passenger-user" options="-parameters" />
+      <module name="service-pay" options="-parameters" />
+      <module name="service-price" options="-parameters" />
+      <module name="service-sse-push" options="-parameters" />
+      <module name="service-verificationcode" options="-parameters" />
+      <module name="user-driver" options="-parameters" />
+      <module name="user-passenger" options="-parameters" />
+      <module name="worry-free-travel" options="" />
+    </option>
+  </component>
+</project>

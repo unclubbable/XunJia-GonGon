@@ -1,0 +1,68 @@
+server:
+  port: 7073
+spring:
+  application:
+    name: passenger-gateway
+  redis:
+    host: 000.000.000.000
+    port: 6379
+    password: 000000
+    #用redis的第 0个数据库
+    database: 0
+    timeout: 1800000
+    lettuce:
+      pool:
+        max-active: 20
+        max-wait: -1
+        #最大阻塞等待时间(负数表示没限制)
+        max-idle: 5
+        min-idle: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 000.000.000.000:8848
+    gateway:
+      routes:
+        # service-price
+        - id: service-price
+          uri: lb://service-price
+          predicates:
+            - Path=/forecast-price
+        # service-order
+        - id: service-order
+          uri: lb://service-order
+          predicates:
+            - Path=/order/**
+        # service-pay
+        - id: service-pay
+          uri: lb://service-pay
+          predicates:
+            - Path=/alipay/**
+        # service-passenger-user
+        - id: service-passenger-user
+          uri: lb://service-passenger-user
+          predicates:
+            - Path=/token-refresh,/passenger-user/**,/verification-code,/verification-code-check
+
+
+
+driver:
+  inpath:     # 不需要认证
+    - /noauthTest
+    - /verification-code
+    - /verification-code-check
+    - /token-refresh
+    - /test-real-time-order/**
+    - /actuator/**
+    - /test/**
+    - /error
+    - /alipay/**
+
+
+
+
+logging:
+  level:
+    com.taxi.passenger: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS

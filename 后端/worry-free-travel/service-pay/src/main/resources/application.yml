@@ -1,0 +1,21 @@
+server:
+  port: 9001
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 000.000.000.000:8848
+  application:
+    name: service-pay
+
+logging:
+  level:
+    com.taxi.pay: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+

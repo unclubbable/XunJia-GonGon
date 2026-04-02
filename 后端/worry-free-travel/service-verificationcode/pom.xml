@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.taxi</groupId>
+        <artifactId>worry-free-travel</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <groupId>com.taxi</groupId>
+    <artifactId>service-verificationcode</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>service-verificationcode</name>
+    <description>Demo project for Spring Boot</description>
+    <dependencies>
+        <!--AMQP-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <!--阿里云短信SDK-->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>dypnsapi20170525</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <!--service-api-->
+        <dependency>
+            <groupId>com.taxi</groupId>
+            <artifactId>service-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!--internal-common-->
+        <dependency>
+            <groupId>com.taxi</groupId>
+            <artifactId>internal-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!--web-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--单元测试-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--nacos-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Spring Boot 可执行Jar打包插件（修正版） -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- 添加配置，确保打包成可执行Jar（必加） -->
+                <configuration>
+                    <!-- 包含系统依赖 -->
+                    <includeSystemScope>true</includeSystemScope>
+                    <!-- 如果你这个模块只有一个启动类，下面可以不写；有多个则指定主类全路径 -->
+                    <!-- <mainClass>com.taxi.boss.BossUserApplication</mainClass> -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
