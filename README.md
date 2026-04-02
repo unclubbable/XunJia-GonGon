@@ -23,7 +23,7 @@
 
 ## 二、安卓端功能展示
 ### 1. 下单->完单全流程展示
-司机端 + 用户端同步录制演示视频
+司机端 + 用户端同步录制演示视频（建议同时播放观感更高）
 
 <img src="assets/android/driver.gif" width="300" alt="司机端演示"><img src="assets/android/passenger.gif" width="300" alt="用户端演示">
 
