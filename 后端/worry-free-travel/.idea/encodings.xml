@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/gateweb-boss/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gateweb-driver/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gateweb-passenger/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/internal-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-boss-user/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-dispatch/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-driver-user/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-map/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-order/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-passenger-user/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-pay/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-price/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-sse-push/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-verificationcode/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/user-driver/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/user-passenger/src/main/java" charset="UTF-8" />
+  </component>
+</project>

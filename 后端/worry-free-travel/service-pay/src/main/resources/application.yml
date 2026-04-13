@@ -1,0 +1,41 @@
+server:
+  port: 9001
+
+spring:
+  main:
+    allow-circular-references: true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 000.000.000.000:8848
+    sentinel:
+      transport:
+        dashboard: 000.000.000.000:8090
+      http-method-specify: true
+  application:
+    name: service-pay
+seata:
+  data-source-proxy-mode: AT
+  registry:
+    type: nacos
+    nacos:
+      server-addr: 0.0.0.0:8848
+      namespace: ""
+      group: DEFAULT_GROUP
+      application: seata-server
+      username: 123
+      password: 123
+  tx-service-group: order
+  service:
+    vgroup-mapping:
+      order: "default"
+logging:
+  level:
+    com.taxi.pay: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+

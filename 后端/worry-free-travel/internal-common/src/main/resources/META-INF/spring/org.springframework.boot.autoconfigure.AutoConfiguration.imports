@@ -1,0 +1,5 @@
+com.taxi.common.config.MyHandler
+com.taxi.common.config.MvcConfig
+com.taxi.common.config.AliOssProperties
+com.taxi.common.util.Osspush
+com.taxi.common.util.Ossdelete

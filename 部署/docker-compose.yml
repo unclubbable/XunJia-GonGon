@@ -1,0 +1,148 @@
+
+services:
+  bossgateweb-service:
+    image: centos-java:1.0
+    container_name: bossgateweb-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "7071:7071"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/gateweb-boss-1.0-SNAPSHOT.jar &>> /opt/log/boss-gateweb.log"]
+  drivergateweb-service:
+    image: centos-java:1.0
+    container_name: drivergateweb-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "7072:7072"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/gateweb-driver-1.0-SNAPSHOT.jar &>> /opt/log/driver-gateweb.log"]
+  passengergateweb-service:
+    image: centos-java:1.0
+    container_name: passengergateweb-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "7073:7073"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/gateweb-passenger-1.0-SNAPSHOT.jar &>> /opt/log/passenger-gateweb.log"]
+  bossUser-service:
+    image: centos-java:1.0
+    container_name: bossUser-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8089:8089"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-boss-user-1.0-SNAPSHOT.jar &>> /opt/log/boss-user.log"]
+  driverUser-service:
+    image: centos-java:1.0
+    container_name: driverUser-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8086:8086"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-driver-user-1.0-SNAPSHOT.jar &>> /opt/log/driver-user.log"]
+  passengerUser-service:
+    image: centos-java:1.0
+    container_name: passengerUser-service
+//    environment:
+//      - OSS_ACCESS_KEY_ID=00000000000000000000
+//      - OSS_ACCESS_KEY_SECRET=0000000000000000000000000
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8083:8083"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-passenger-user-0.0.1-SNAPSHOT.jar &>> /opt/log/passenger-user.log"]
+  dispatch-service:
+    image: centos-java:1.0
+    container_name: dispatch-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "9003:9003"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-dispatch-1.0-SNAPSHOT.jar &>> /opt/log/dispatch.log"]
+  map-service:
+    image: centos-java:1.0
+    container_name: map-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8085:8085"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-map-1.0-SNAPSHOT.jar &>> /opt/log/map.log"]
+  order-service:
+    image: centos-java:1.0
+    container_name: order-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8087:8087"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-order-1.0-SNAPSHOT.jar &>> /opt/log/order.log"]
+  pay-service:
+    image: centos-java:1.0
+    container_name: pay-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "9001:9001"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-pay-1.0-SNAPSHOT.jar &>> /opt/log/pay.log"]
+  price-service:
+    image: centos-java:1.0
+    container_name: price-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8084:8084"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-price-1.0-SNAPSHOT.jar &>> /opt/log/price.log"]
+  websocket-service:
+    image: centos-java:1.0
+    container_name: websocket-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "9000:9000"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-sse-push-1.0-SNAPSHOT.jar &>> /opt/log/websocket.log"]
+  verificationcode-service:
+    image: centos-java:1.0
+    container_name: verificationcode-service
+    restart: always
+    privileged: true
+    volumes:
+    - /opt/service-weifuwu/jar/:/opt/jar/
+    - /opt/service-weifuwu/log/:/opt/log/
+    ports:
+      - "8082:8082"
+    command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-verificationcode-0.0.1-SNAPSHOT.jar &>> /opt/log/verificationcode.log"]

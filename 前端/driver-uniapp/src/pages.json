@@ -1,0 +1,106 @@
+{
+	"easycom": {
+	  "autoscan": true,
+	  "custom": {
+	    // uni-ui 规则如下配置
+	    "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+	  }
+	},
+	//pages数组中第一项表示应用启动页，
+	"pages": [ 
+		{
+			"path": "pages/login",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端",
+				"titleImage":"/static/driver-logo.png"
+			}
+		},
+		{
+			"path": "pages/index",
+			"style": {
+				// "navigationBarTitleText": "迅家出行-司机端",
+				"titleImage":"/static/driver-logo.png"
+			}
+		},
+		{
+			"path": "pages/city",
+			"style": {
+				// "navigationBarTitleText": "迅家出行-司机端",
+				"titleImage":"/static/driver-logo.png"
+			}
+		},
+		{
+			"path": "pages/orderDetail",
+			"style": {
+				// "navigationBarTitleText": "迅家出行-司机端",
+				"titleImage":"/static/driver-logo.png"
+			}
+		},
+		{
+			"path" : "pages/my",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/monsy",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/myInfo",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/setOperatingCity",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/orderInfo",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/map",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/termsAndRules",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/opinion",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/paymentSettings",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		}
+
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "迅家出行",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"logoImage": {
+		            "width": "100px",
+		            "height": "100px",
+		            "borderRadius": "5%"
+		        }
+	}
+}

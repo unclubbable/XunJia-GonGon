@@ -1,0 +1,95 @@
+server:
+  port: 8087
+
+spring:
+  main:
+    allow-circular-references: true
+  application:
+    name: service-order
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 000.000.000.000:8848
+    sentinel:
+      transport:
+        dashboard: 000.000.000.000:8090
+      http-method-specify: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://000.000.000.000:3303/service-order?characterEncoding=utf-8&serverTimezone=GMT%2B8
+    username: root
+    password: 000000
+    hikari:
+      # 连接池最大连接数
+      maximum-pool-size: 10
+      # 最小空闲连接数
+      minimum-idle: 5
+      # 空闲连接存活最大时间（毫秒），默认 600000（10分钟）
+      idle-timeout: 600000
+      # 连接最大存活时间（毫秒），默认 1800000（30分钟），应小于 MySQL 的 wait_timeout
+      max-lifetime: 1800000
+      # 获取连接超时时间（毫秒），默认 30000
+      connection-timeout: 30000
+      # 连接测试查询（MySQL 推荐 SELECT 1）
+      connection-test-query: SELECT 1
+      # 验证超时（毫秒）
+      validation-timeout: 5000
+      # 心跳间隔（毫秒），定期发送 ping 保持连接活跃（HikariCP 3.4.0+ 支持）
+      keepalive-time: 30000   # 每30秒一次心跳
+  rabbitmq:
+    host: 000.000.000.000       # 你的RabbitMQ地址
+    port: 5672            # 默认端口
+    username: admin       # 默认用户名
+    password: 123       # 默认密码
+    virtual-host: /       # 虚拟主机
+    # 消息确认配置（保证消息可靠发送）
+    publisher-confirm-type: correlated
+    publisher-returns: true
+  redis:
+    host: 000.000.000.000
+    port: 6379
+    password: 000000
+    database: 0
+seata:
+  data-source-proxy-mode: AT
+  registry:
+    type: nacos
+    nacos:
+      server-addr: 0.0.0.0:8848
+      namespace: ""
+      group: DEFAULT_GROUP
+      application: seata-server
+      username: 123
+      password: 123
+  tx-service-group: order
+  service:
+    vgroup-mapping:
+      order: "default"
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+#logging:
+#  level:
+#    com.baomidou: debug
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  global-config:
+#    db-config:
+#      id-type: 0
+logging:
+  level:
+    com.taxi.order: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+knife4j:
+  enable: true
+  openapi:
+    group:
+      default:
+        api-rule-resources:
+          - com.taxi.order
