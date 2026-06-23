@@ -1,0 +1,142 @@
+{
+	"easycom": {
+	  "autoscan": true,
+	  "custom": {
+	    // uni-ui 规则如下配置
+        "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+      }
+	},
+	"pages": [  
+		{
+			"path": "pages/index/index",
+			"style": {
+				// "navigationBarTitleText": "迅家出行",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/city",
+			"style": {
+				// "navigationBarTitleText": "迅家出行",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/createOrder",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/orderDetail",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/pay"
+			// "style": {
+			// 	"titleImage": "/static/passenger-logo.png"
+			// }
+		},
+		{
+			"path": "pages/login",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/account",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/orderInfo",
+			"app-plus":{
+				"scrollIndicator":"none" //当前页面不显示滚动条
+			},
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/my",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/myInfo",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/paymentSettings",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/termsAndRules",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/opinion",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "迅家出行",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#888",
+		"selectedColor": "#318eff",
+		"height": "64px",
+		"fontSize": "14px",
+		"iconfontSrc": "/static/icon/iconfont.ttf",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconfont": {
+					"text": "\ue622",
+					"selectedText": "\ue622",
+					"fontSize": "24px",
+					"color": "#318eff",
+					"selectedColor": "#318eff"
+				}
+			},
+			{
+				"pagePath": "pages/orderInfo",
+				"text": "订单",
+				"iconfont": {
+					"text": "\ue64e",
+					"selectedText": "\ue64e",
+					"fontSize": "24px",
+					"color": "#318eff",
+					"selectedColor": "#318eff"
+				}
+			},
+			{
+				"pagePath": "pages/my",
+				"text": "我的",
+				"iconfont": {
+					"text": "\ue62b",
+					"selectedText": "\ue62b",
+					"fontSize": "24px",
+					"color": "#318eff",
+					"selectedColor": "#318eff"
+				}
+			}
+		]
+	}
+}

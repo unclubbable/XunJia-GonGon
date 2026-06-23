@@ -1,0 +1,50 @@
+server:
+  port: 7071
+spring:
+  application:
+    name: boss-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 000.000.000.000:8848
+    sentinel:
+      transport:
+        dashboard: 000.000.000.000:8090
+      http-method-specify: true
+    gateway:
+      routes:
+        # boss用户
+        - id: user-boss
+          uri: lb://user-boss
+          predicates:
+            - Path=/boss-user/**
+        # service-driver-user
+        - id: service-driver-user
+          uri: lb://service-driver-user
+          predicates:
+            - Path=/driver-user-money/**,/driver_car_binging_relationship/**,/get-car/**,/car/**,/driver_car_binging_relationship/**,/driver-user/**,/get-driver-info/**,/driver-user-work-status/**
+        # service-map
+        - id: service-map-1
+          uri: lb://service-map
+          predicates:
+            - Path=/district/**,/dic-district/**
+        # service-order
+        - id: service-order
+          uri: lb://service-order
+          predicates:
+            - Path=/order/**
+        # service-price
+        - id: service-price
+          uri: lb://service-price
+          predicates:
+            - Path=/price-rule/**
+        # service-passenger-user
+        - id: service-passenger-user
+          uri: lb://service-passenger-user
+          predicates:
+            - Path=/passenger-user/**
+logging:
+  level:
+    com.taxi.gatewebboss: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS

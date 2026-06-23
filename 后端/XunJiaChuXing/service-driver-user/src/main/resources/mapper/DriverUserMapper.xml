@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.taxi.driverUser.mapper.DriverUserMapper">
+    <select id="selectDriverUserCountByCityCode" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM driver_user AS du
+                 JOIN driver_user_work_status AS ds ON du.id = ds.driver_id
+        WHERE du.address = #{cityCode}
+          AND ds.work_status = 1   -- 出车
+    </select>
+</mapper>
