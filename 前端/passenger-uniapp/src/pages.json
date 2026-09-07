@@ -1,0 +1,169 @@
+{
+	"easycom": {
+	  "autoscan": true,
+	  "custom": {
+	    // uni-ui 规则如下配置
+        "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+      }
+	},
+	"pages": [  
+		{
+			"path": "pages/home/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
+			}
+		},
+		{
+			"path": "pages/home/city/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/order/create/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/order/detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
+			}
+		},
+		{
+			"path": "pages/order/pay/index"
+		},
+		{
+			"path": "pages/auth/login/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/dev/account",
+			"style": {
+				"navigationBarTitleText": "服务端地址(调试)",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/order/list/index",
+			"app-plus":{
+				"scrollIndicator":"none"
+			},
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/profile/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/profile/info/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path" : "pages/profile/payment/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/profile/terms/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/profile/opinion/index",
+			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/ticket/list/index",
+			"style": {
+				"navigationBarTitleText": "我的工单",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/ticket/create/index",
+			"style": {
+				"navigationBarTitleText": "提交工单",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/ticket/detail/index",
+			"style": {
+				"navigationBarTitleText": "工单详情",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "迅家出行",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#888",
+		"selectedColor": "#318eff",
+		"height": "64px",
+		"fontSize": "14px",
+		"iconfontSrc": "/static/icon/iconfont.ttf",
+		"list": [
+			{
+				"pagePath": "pages/home/index",
+				"text": "首页",
+				"iconfont": {
+					"text": "\ue622",
+					"selectedText": "\ue622",
+					"fontSize": "24px",
+					"color": "#318eff",
+					"selectedColor": "#318eff"
+				}
+			},
+			{
+				"pagePath": "pages/order/list/index",
+				"text": "订单",
+				"iconfont": {
+					"text": "\ue64e",
+					"selectedText": "\ue64e",
+					"fontSize": "24px",
+					"color": "#318eff",
+					"selectedColor": "#318eff"
+				}
+			},
+			{
+				"pagePath": "pages/profile/index",
+				"text": "我的",
+				"iconfont": {
+					"text": "\ue62b",
+					"selectedText": "\ue62b",
+					"fontSize": "24px",
+					"color": "#318eff",
+					"selectedColor": "#318eff"
+				}
+			}
+		]
+	}
+}

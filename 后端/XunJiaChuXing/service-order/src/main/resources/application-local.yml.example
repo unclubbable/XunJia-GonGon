@@ -1,0 +1,23 @@
+﻿# 复制为 application-local.yml 后填写真实值
+spring:
+  datasource:
+    password: YOUR_MYSQL_PASSWORD
+  redis:
+    password: YOUR_REDIS_PASSWORD
+  rabbitmq:
+    password: YOUR_RABBITMQ_PASSWORD
+
+seata:
+  registry:
+    nacos:
+      password: YOUR_NACOS_PASSWORD
+
+alipay:
+  app-id: YOUR_ALIPAY_APP_ID
+  private-key: |
+    YOUR_ALIPAY_PRIVATE_KEY
+  alipay-public-key: |
+    YOUR_ALIPAY_PUBLIC_KEY
+  server-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  notify-url: http://127.0.0.1:7071/passenger-user/alipay/notify
+  auth-token: YOUR_ALIPAY_AUTH_TOKEN

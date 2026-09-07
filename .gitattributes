@@ -1,0 +1,27 @@
+﻿# Normalize line endings
+* text=auto eol=lf
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.jar binary
+*.war binary
+*.zip binary
+*.7z binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.keystore binary
+*.jks binary
+*.p12 binary
+*.pem binary
+*.key binary
+# Large demo media via Git LFS
+assets/android/*.mp4 filter=lfs diff=lfs merge=lfs -text
+assets/android/*.gif filter=lfs diff=lfs merge=lfs -text
+前端/admin-vue3/boss/src/assets/android/*.mp4 filter=lfs diff=lfs merge=lfs -text

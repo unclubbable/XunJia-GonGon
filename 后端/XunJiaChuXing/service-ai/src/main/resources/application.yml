@@ -1,0 +1,57 @@
+﻿server:
+  port: 8092
+
+spring:
+  config:
+    import: optional:classpath:application-local.yml
+  main:
+    allow-circular-references: true
+  application:
+    name: service-ai
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 8.140.211.132:8848
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://8.140.211.132:3303/service-ai?characterEncoding=utf-8&serverTimezone=GMT%2B8
+    username: root
+    password: CHANGE_ME
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+# Python Agent
+agent:
+  python-base-url: http://127.0.0.1:18080
+  connect-timeout-ms: 3000
+  read-timeout-ms: 110000
+
+# 给 Python 回调 Java 内网接口用（阶段 2+）
+ai:
+  internal-token: CHANGE_ME
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 10000
+      service-ticket:
+        connectTimeout: 3000
+        readTimeout: 15000
+
+logging:
+  level:
+    com.taxi.ai: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+
+knife4j:
+  enable: true
+  openapi:
+    group:
+      default:
+        api-rule-resources:
+          - com.taxi.ai

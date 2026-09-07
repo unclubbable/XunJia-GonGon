@@ -1,0 +1,62 @@
+﻿server:
+  port: 8091
+
+spring:
+  config:
+    import: optional:classpath:application-local.yml
+  main:
+    allow-circular-references: true
+  application:
+    name: service-ticket
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 8.140.211.132:8848
+    sentinel:
+      transport:
+        dashboard: 8.140.211.132:8090
+      http-method-specify: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://8.140.211.132:3303/service-ticket?characterEncoding=utf-8&serverTimezone=GMT%2B8
+    username: root
+    password: CHANGE_ME
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      keepalive-time: 30000
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+      # 支付宝退款/查单可能较慢，避免 Feign 先超时把「已退成功」打成失败
+      service-order:
+        connectTimeout: 5000
+        readTimeout: 70000
+      service-ai:
+        connectTimeout: 3000
+        readTimeout: 120000
+  sentinel:
+    enabled: true
+
+logging:
+  level:
+    com.taxi.ticket: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+
+knife4j:
+  enable: true
+  openapi:
+    group:
+      default:
+        api-rule-resources:
+          - com.taxi.ticket

@@ -1,0 +1,180 @@
+﻿server:
+  port: 7071
+spring:
+  config:
+    import: optional:classpath:application-local.yml
+  application:
+    name: gateweb
+  redis:
+    host: 8.140.211.132
+    port: 6379
+    password: CHANGE_ME
+    #用redis的第 0个数据库
+    database: 0
+    timeout: 1800000
+    lettuce:
+      pool:
+        max-active: 20
+        max-wait: -1
+        #最大阻塞等待时间(负数表示没限制)
+        max-idle: 5
+        min-idle: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 8.140.211.132:8848
+    sentinel:
+      transport:
+        dashboard: 8.140.211.132:8090
+      http-method-specify: true
+    gateway:
+      routes:
+        # ---------- 司机端：/driver-user ----------
+        - id: driver-ticket
+          uri: lb://service-ticket
+          predicates:
+            - Path=/driver-user/ticket/**
+          filters:
+            - StripPrefix=1
+        - id: driver-order
+          uri: lb://service-order
+          predicates:
+            - Path=/driver-user/order/**
+          filters:
+            - StripPrefix=1
+        - id: driver-map
+          uri: lb://service-map
+          predicates:
+            - Path=/driver-user/point/**
+          filters:
+            - StripPrefix=1
+        # 司机端地区字典（dic_district），需放在 driver-user 通配路由之前
+        - id: driver-district
+          uri: lb://service-map
+          predicates:
+            - Path=/driver-user/district,/driver-user/district/**,/driver-user/dic-district/**
+          filters:
+            - StripPrefix=1
+        # 司机业务接口本身就是 /driver-user/**，不再剥前缀
+        - id: driver-user
+          uri: lb://service-driver-user
+          predicates:
+            - Path=/driver-user/**
+
+        # ---------- 乘客端：/passenger-user ----------
+        # 车辆类型字典（需放在 passenger-user 通配路由之前）
+        - id: passenger-dict-car-class
+          uri: lb://service-driver-user
+          predicates:
+            - Path=/passenger-user/dict-car-class/**
+          filters:
+            - RewritePath=/passenger-user/(?<segment>.*), /driver-user/$\{segment}
+        - id: passenger-price
+          uri: lb://service-price
+          predicates:
+            - Path=/passenger-user/forecast-price
+          filters:
+            - StripPrefix=1
+        - id: passenger-order
+          uri: lb://service-order
+          predicates:
+            - Path=/passenger-user/order/**
+          filters:
+            - StripPrefix=1
+        - id: passenger-pay
+          uri: lb://service-order
+          predicates:
+            - Path=/passenger-user/alipay/**
+          filters:
+            - StripPrefix=1
+        - id: passenger-ticket
+          uri: lb://service-ticket
+          predicates:
+            - Path=/passenger-user/ticket/**
+          filters:
+            - StripPrefix=1
+        - id: passenger-user
+          uri: lb://service-passenger-user
+          predicates:
+            - Path=/passenger-user/**
+          filters:
+            - StripPrefix=1
+
+        # ---------- 管理端：/boss-user ----------
+        - id: boss-ticket
+          uri: lb://service-ticket
+          predicates:
+            - Path=/boss-user/ticket/**
+          filters:
+            - StripPrefix=1
+        - id: boss-ai
+          uri: lb://service-ai
+          predicates:
+            - Path=/boss-user/ai/**
+          filters:
+            - StripPrefix=1
+        - id: boss-driver-user
+          uri: lb://service-driver-user
+          predicates:
+            - Path=/boss-user/driver-user/**
+          filters:
+            - StripPrefix=1
+        - id: boss-map
+          uri: lb://service-map
+          predicates:
+            - Path=/boss-user/district/**,/boss-user/district,/boss-user/dic-district/**
+          filters:
+            - StripPrefix=1
+        # 管理端查询高德轨迹点（订单地图轨迹页）
+        - id: boss-map-terminal
+          uri: lb://service-map
+          predicates:
+            - Path=/boss-user/terminal/**
+          filters:
+            - StripPrefix=1
+        - id: boss-order
+          uri: lb://service-order
+          predicates:
+            - Path=/boss-user/order/**
+          filters:
+            - StripPrefix=1
+        - id: boss-price
+          uri: lb://service-price
+          predicates:
+            - Path=/boss-user/price-rule/**
+          filters:
+            - StripPrefix=1
+        - id: boss-passenger-user
+          uri: lb://service-passenger-user
+          predicates:
+            - Path=/boss-user/passenger-user/**
+          filters:
+            - StripPrefix=1
+        - id: boss-user
+          uri: lb://user-boss
+          predicates:
+            - Path=/boss-user/**
+          filters:
+            - StripPrefix=1
+logging:
+  level:
+    com.taxi.gateweb: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
+# 白名单：管理端沿用原网关不鉴权；司机/乘客登录、支付回调不鉴权
+auth:
+  inpath:
+    - /boss-user/**
+    - /driver-user/noauth
+    - /driver-user/verification-code
+    - /driver-user/verification-code-check
+    - /driver-user/order/grab
+    - /passenger-user/noauthTest
+    - /passenger-user/verification-code
+    - /passenger-user/verification-code-check
+    - /passenger-user/token-refresh
+    - /passenger-user/test-real-time-order/**
+    - /passenger-user/actuator/**
+    - /passenger-user/test/**
+    - /passenger-user/error
+    - /passenger-user/alipay/**

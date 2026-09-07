@@ -1,0 +1,10 @@
+﻿# 本地私密配置（勿提交）。由 application.yml 的 optional import 自动加载。
+# 缺少本文件时服务仍能启动，但数据库/第三方会因 CHANGE_ME 失败。
+
+spring:
+  datasource:
+    password: YOUR_MYSQL_PASSWORD
+
+ai:
+  internal-token: YOUR_AI_INTERNAL_TOKEN
+

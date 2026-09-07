@@ -1,0 +1,126 @@
+{
+	"easycom": {
+	  "autoscan": true,
+	  "custom": {
+	    "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+	  }
+	},
+	"pages": [ 
+		{
+			"path": "pages/auth/login/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端",
+				"titleImage":"/static/driver-logo.png"
+			}
+		},
+		{
+			"path": "pages/home/index",
+			"style": {
+				"titleImage":"/static/driver-logo.png"
+			}
+		},
+		{
+			"path": "pages/order/detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
+			}
+		},
+		{
+			"path" : "pages/profile/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/finance/money/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/profile/info/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/order/list/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/map/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
+			}
+		},
+		{
+			"path" : "pages/profile/terms/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/profile/opinion/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path" : "pages/profile/payment/index",
+			"style": {
+				"navigationBarTitleText": "迅家出行-司机端"
+			}
+		},
+		{
+			"path": "pages/ticket/list/index",
+			"style": {
+				"navigationBarTitleText": "我的工单"
+			}
+		},
+		{
+			"path": "pages/ticket/create/index",
+			"style": {
+				"navigationBarTitleText": "提交工单"
+			}
+		},
+		{
+			"path": "pages/ticket/detail/index",
+			"style": {
+				"navigationBarTitleText": "工单详情"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "迅家出行",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"logoImage": {
+		            "width": "100px",
+		            "height": "100px",
+		            "borderRadius": "5%"
+		        }
+	},
+	"condition" : {
+		"current": 0,
+		"list": [
+			{
+				"name": "",
+				"path": "",
+				"query": ""
+			}
+		]
+	}
+}
