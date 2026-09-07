@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 
-@FeignClient("service-sse-push")
+@FeignClient("service-websocket")
 public interface ServiceSsePushClient {
     @PostMapping("/push")
     public String push(@RequestBody PushRequest pushRequest);

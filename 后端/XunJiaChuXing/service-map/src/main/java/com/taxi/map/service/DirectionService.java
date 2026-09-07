@@ -17,13 +17,8 @@ public class DirectionService {
     @Autowired
     private MapDirectionClient mapDirectionClient;
 
-    /**
-     * 根据起点经纬度和终点经纬度获取距离(米)和时长(分钟)
-     * @param forecastPriceDOT
-     * @return
-     */
+    /** 算距离(米)和时长(分钟) */
     public Result driving(ForecastPriceDOT forecastPriceDOT) {
-        // 获取属性值
         String depLongitude = forecastPriceDOT.getDepLongitude();
         String depLatitude = forecastPriceDOT.getDepLatitude();
         String destLongitude = forecastPriceDOT.getDestLongitude();

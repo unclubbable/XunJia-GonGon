@@ -7,11 +7,9 @@ import com.taxi.api.result.Result;
 
 public interface IDriverUserWorkStatusService extends IService<DriverUserWorkStatus> {
 
-    Result changeWorkStatus(Long driverId, Integer workStatus, String citycode);
+    Result changeWorkStatus(Long driverId, Integer workStatus, String address);
 
     Result<DriverUserWorkStatus> getWorkStatus(Long driverId);
-
-    Result changeWorkCity(Long driverId, String adname, String citycode, String adcode);
 
     Result getAllWorkStatus();
 

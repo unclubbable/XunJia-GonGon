@@ -5,7 +5,7 @@
       <el-header class="layout-header">
         <div class="header-left">
           <div class="logo-area">
-            <img src="../assets/logo.png" alt="讯家出行" class="logo-img"" />
+            <img src="../assets/logo.png" alt="讯家出行" class="logo-img" />
             <span class="logo-text">讯家出行</span>
           </div>
         </div>
@@ -74,6 +74,7 @@
               </template>
               <el-menu-item index="/car/list">车辆信息列表</el-menu-item>
               <el-menu-item index="/car/certificate">车辆证件管理</el-menu-item>
+              <el-menu-item index="/car/dict">车辆类型管理</el-menu-item>
             </el-sub-menu>
 
             <!-- 司机-车辆绑定管理 -->
@@ -115,6 +116,21 @@
               <el-menu-item index="/monitor/fare">运价规则管理</el-menu-item>
             </el-sub-menu>
 
+            <!-- 工单与客服 -->
+            <el-sub-menu index="/ticket">
+              <template #title>
+                <el-icon><Tickets /></el-icon>
+                <span>工单管理</span>
+              </template>
+              <el-menu-item index="/ticket/list">工单列表</el-menu-item>
+              <el-menu-item index="/ticket/refund">退款登记</el-menu-item>
+            </el-sub-menu>
+
+            <el-menu-item index="/agent">
+              <el-icon><Cpu /></el-icon>
+              <template #title>AI 协查</template>
+            </el-menu-item>
+
             <!-- 数据概览 (首页仪表盘) -->
             <el-menu-item index="/android">
               <el-icon><DataLine /></el-icon>
@@ -154,7 +170,7 @@ import { useRouter } from 'vue-router'
 import { removeToken, getToken } from '../utils/auth'
 import {
   Search, Bell, ArrowDown, DataLine, User, Van, Connection,
-  List, Money, Monitor, Setting, Tools, WarningFilled
+  List, Money, Monitor, Setting, Tools, WarningFilled, Tickets, Cpu
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -228,6 +244,7 @@ onMounted(() => {
 .app-layout {
   height: 100vh;
   overflow: hidden;
+  background: var(--xj-bg-page, #f0f2f6);
 }
 
 .layout-container {
@@ -235,20 +252,20 @@ onMounted(() => {
 }
 
 .layout-header {
-  background-color: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+  box-shadow: 0 1px 0 var(--xj-border, #e8ecf0);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  height: 64px;
+  height: var(--xj-header-height, 64px);
   z-index: 10;
 }
 
 .header-left .logo-area {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .logo-img {
@@ -258,8 +275,8 @@ onMounted(() => {
 
 .logo-text {
   font-size: 20px;
-  font-weight: 600;
-  color: #1890ff;
+  font-weight: 700;
+  color: var(--xj-primary, #1890ff);
   letter-spacing: 1px;
 }
 
@@ -286,7 +303,7 @@ onMounted(() => {
 }
 
 .action-icon:hover {
-  color: #1890ff;
+  color: var(--xj-primary, #1890ff);
 }
 
 .user-info {
@@ -294,46 +311,57 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 20px;
   transition: background 0.2s;
+  border: 1px solid transparent;
 }
 
 .user-info:hover {
-  background-color: #f5f5f5;
+  background-color: var(--xj-primary-soft, #e6f7ff);
+  border-color: #91d5ff;
 }
 
 .username {
   font-size: 14px;
-  color: #303133;
+  color: var(--xj-text, #303133);
+  font-weight: 500;
 }
 
 .layout-aside {
-  background-color: #ffffff;
-  border-right: 1px solid #eaeef2;
+  background-color: var(--xj-bg-aside, #ffffff);
+  border-right: 1px solid var(--xj-border, #eaeef2);
   overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .el-menu-vertical {
   border-right: none;
   height: 100%;
+  padding: 8px 0;
 }
 
 .el-menu-vertical:not(.el-menu--collapse) {
   width: 100%;
 }
 
-.layout-main {
-  background-color: #f0f2f6;
-  padding: 20px;
-  overflow-y: auto;
-  height: calc(100vh - 64px);
+.el-menu-vertical :deep(.el-menu-item.is-active) {
+  background: var(--xj-primary-soft, #e6f7ff) !important;
+  border-right: 3px solid var(--xj-primary, #1890ff);
+  font-weight: 600;
 }
 
+.el-menu-vertical :deep(.el-menu-item:hover),
+.el-menu-vertical :deep(.el-sub-menu__title:hover) {
+  background: #f7f9fc !important;
+}
 
+.layout-main {
+  background-color: var(--xj-bg-page, #f0f2f6);
+  padding: 16px 20px;
+  overflow-y: auto;
+  height: calc(100vh - var(--xj-header-height, 64px));
+}
 
-/* 提醒抽屉样式 */
 .reminder-list {
   padding: 0 12px;
 }

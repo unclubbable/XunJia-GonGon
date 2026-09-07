@@ -1,1 +1,1 @@
-com.taxi.api.config.OpenfeignConfig
+com.taxi.api.config.ApiAutoConfiguration

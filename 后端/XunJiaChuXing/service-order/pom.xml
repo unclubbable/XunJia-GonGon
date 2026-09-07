@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -12,13 +12,13 @@
     <artifactId>service-order</artifactId>
 
     <dependencies>
+
         <!--seata-->
         <dependency>
             <groupId>io.seata</groupId>
             <artifactId>seata-spring-boot-starter</artifactId>
             <version>1.8.0</version>
         </dependency>
-
         <!--service-api-->
         <dependency>
             <groupId>com.taxi</groupId>
@@ -35,6 +35,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--校验-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <!--internal-common-->
         <dependency>
@@ -80,11 +85,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
+        <!--支付宝调用框架-->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>4.40.700.ALL</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Spring Boot 可执行Jar打包插件（修正版） -->
+            <!-- 可执行 jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -95,11 +106,9 @@
                         </goals>
                     </execution>
                 </executions>
-                <!-- 添加配置，确保打包成可执行Jar（必加） -->
+                <!-- repackage -->
                 <configuration>
-                    <!-- 包含系统依赖 -->
                     <includeSystemScope>true</includeSystemScope>
-                    <!-- 如果你这个模块只有一个启动类，下面可以不写；有多个则指定主类全路径 -->
                     <!-- <mainClass>com.taxi.boss.BossUserApplication</mainClass> -->
                 </configuration>
             </plugin>

@@ -1,7 +1,9 @@
-server:
+﻿server:
   port: 8086
 
 spring:
+  config:
+    import: optional:classpath:application-local.yml
   main:
     allow-circular-references: true
   application:
@@ -9,16 +11,16 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 000.000.000.000:8848
+        server-addr: 8.140.211.132:8848
     sentinel:
       transport:
-        dashboard: 000.000.000.000:8090
+        dashboard: 8.140.211.132:8090
       http-method-specify: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://000.000.000.000:3303/service-driver-user?characterEncoding=utf-8&serverTimezone=GMT%2B8
+    url: jdbc:mysql://8.140.211.132:3303/service-driver-user?characterEncoding=utf-8&serverTimezone=GMT%2B8
     username: root
-    password: 000000
+    password: CHANGE_ME
     hikari:
       # 连接池最大连接数
       maximum-pool-size: 10
@@ -37,9 +39,9 @@ spring:
       # 心跳间隔（毫秒），定期发送 ping 保持连接活跃（HikariCP 3.4.0+ 支持）
       keepalive-time: 30000   # 每30秒一次心跳
   redis:
-    host: 000.000.000.000
+    host: 8.140.211.132
     port: 6379
-    password: 000000
+    password: CHANGE_ME
     #用redis的第 0个数据库
     database: 0
     timeout: 1800000
@@ -50,24 +52,6 @@ spring:
         #最大阻塞等待时间(负数表示没限制)
         max-idle: 5
         min-idle: 0
-  # RabbitMQ 配置
-  rabbitmq:
-    host: 000.000.000.000       # RabbitMQ地址
-    port: 5672            # 默认端口
-    username: admin       # 默认用户名
-    password: 123       # 默认密码
-    virtual-host: /       # 虚拟主机
-    listener:
-      simple:
-        prefetch: 1 # 每次只能获取一条消息，处理完成才能获取下一个消息
-      #发送者重连机制
-      connection-timeout: 1s # 设置MQ的连接超时时间
-      template:
-        retry:
-          enabled: true # 开启超时重试机制
-          initial-interval: 1000ms # 失败后的初始等待时间
-          multiplier: 1 # 失败后下次的等待时长倍数，下次等待时长 = initial-interval * multiplier
-          max-attempts: 3 # 最大重试次数
 logging:
   level:
     com.taxi.driverUser: debug
@@ -82,3 +66,8 @@ knife4j:
       default:
         api-rule-resources:
           - com.taxi.driverUser
+
+# 阿里云短信（公共工具 SmsVerifyCodeSender）
+aliyun:
+  accessKeyId: CHANGE_ME
+  accessKeySecret: CHANGE_ME

@@ -18,9 +18,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://8.140.211.132:7071',
+        target: 'http://127.0.0.1:7071',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        // AI 协查链路可能 10~60s+，避免代理默认超时先断开
+        timeout: 120000,
+        proxyTimeout: 120000,
+        rewrite: (path) => path.replace(/^\/api/, '/boss-user')
       }
     }
   }

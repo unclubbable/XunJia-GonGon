@@ -59,11 +59,7 @@ public class JwtUtils {
             return result;
     }
 
-    /**
-     * 主要判断token是否异常
-     * @param token
-     * @return
-     */
+    /** 校验 token，异常返回 null */
     public static TokenResult checkToken(String token){
         //解析token
         TokenResult tokenResult = null;

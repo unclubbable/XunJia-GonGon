@@ -44,6 +44,18 @@
             {{ row.price?.toFixed(2) }}
           </template>
         </el-table-column>
+        <el-table-column label="退款状态" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag
+              v-if="row.refundStatus != null && row.refundStatus !== 0"
+              :type="ORDER_REFUND_STATUS_TAG[row.refundStatus] || 'info'"
+              size="small"
+            >
+              {{ ORDER_REFUND_STATUS_MAP[row.refundStatus] || '未知' }}
+            </el-tag>
+            <span v-else class="muted">无</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="orderTime" label="下单时间" width="160">
           <template #default="{ row }">
             {{ formatDateTime(row.orderTime) }}
@@ -123,6 +135,9 @@
         <el-descriptions-item label="载客里程(米)">{{ currentOrder.driveMile }}</el-descriptions-item>
         <el-descriptions-item label="载客时间(分)">{{ currentOrder.driveTime }}</el-descriptions-item>
         <el-descriptions-item label="金额(元)">{{ currentOrder.price?.toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="退款状态">
+          {{ ORDER_REFUND_STATUS_MAP[currentOrder.refundStatus ?? 0] || '无退款' }}
+        </el-descriptions-item>
         <el-descriptions-item label="支付订单号">{{ currentOrder.payOrderId }}</el-descriptions-item>
         <el-descriptions-item label="取消时间">{{ formatDateTime(currentOrder.cancelTime) }}</el-descriptions-item>
         <el-descriptions-item label="取消发起者">{{ cancelOperatorMap[currentOrder.cancelOperator] }}</el-descriptions-item>
@@ -146,6 +161,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, ArrowDown } from '@element-plus/icons-vue'
 import { getOrderList, updateOrder } from '@/api/order'
 import { getDicDistrict } from '@/api/driverUser'
+import { ORDER_REFUND_STATUS_MAP, ORDER_REFUND_STATUS_TAG } from '@/utils/ticketDict'
 import router from '@/router'
 
 // ---------- 订单状态映射 ----------
@@ -394,5 +410,9 @@ onMounted(() => {
 
 .action-buttons .el-button {
   margin: 0;
+}
+
+.muted {
+  color: #c0c4cc;
 }
 </style>

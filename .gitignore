@@ -1,0 +1,56 @@
+# ===== 私密配置（勿提交）=====
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+**/application-local.yml
+**/amap-android.local.txt
+**/gdMapConf.local.js
+**/amap.local.js
+**/local-secrets.*
+APIKEY
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+
+# ===== IDE / OS =====
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp
+*.log
+
+# ===== Java / Maven =====
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# ===== Node / 前端构建产物 =====
+**/node_modules/
+**/dist/
+**/unpackage/
+**/.hbuilderx/
+**/dist/cache/
+
+# ===== Python Agent =====
+Agent/.venv/
+Agent/__pycache__/
+Agent/**/__pycache__/
+Agent/*.egg-info/
+Agent/.pytest_cache/
+Agent/.mypy_cache/
+Agent/.ruff_cache/
+Agent/data/
+Agent/*.db
+Agent/*.sqlite
+Agent/*.sqlite3
+
+# ===== 杂项 =====
+*.class
+*.jar
+!**/gradle-wrapper.jar

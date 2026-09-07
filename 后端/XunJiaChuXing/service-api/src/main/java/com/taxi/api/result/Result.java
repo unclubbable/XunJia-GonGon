@@ -71,6 +71,23 @@ public class Result<T> {
         return build(data, ResultCodeEnum.FAIL);
     }
 
+    /**
+     * 按枚举返回业务错误（code + message 均来自枚举）
+     */
+    public static <T> Result<T> fail(ResultCodeEnum resultCodeEnum) {
+        Result<T> result = new Result<>();
+        result.setCode(resultCodeEnum.getCode());
+        result.setMessage(resultCodeEnum.getMessage());
+        return result;
+    }
+
+    /**
+     * 按枚举返回业务错误，并覆盖 message（保留泛型，避免 Result&lt;Object&gt; 类型错误）
+     */
+    public static <T> Result<T> fail(ResultCodeEnum resultCodeEnum, String message) {
+        return build(null, resultCodeEnum.getCode(), message);
+    }
+
     public Result<T> message(String msg) {
         this.setMessage(msg);
         return this;

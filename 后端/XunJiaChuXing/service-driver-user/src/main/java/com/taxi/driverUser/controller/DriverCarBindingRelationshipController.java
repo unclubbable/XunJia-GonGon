@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/driver_car_binging_relationship")
+@RequestMapping("/driver-user/driver_car_binging_relationship") // 司机端接口统一根路径
 @RestController
 public class DriverCarBindingRelationshipController {
     @Autowired
@@ -29,6 +29,18 @@ public class DriverCarBindingRelationshipController {
     @GetMapping("list")
     public Result getBindingList(){
         return Result.ok(driverCarBindingRelationshipService.list());
+    }
+
+    @ApiOperation("按司机ID查询当前绑定关系")
+    @GetMapping("/by-driver/{driverId}")
+    public Result<DriverCarBindingRelationship> getBindingByDriverId(@PathVariable Long driverId) {
+        return driverCarBindingRelationshipService.getBindingByDriverId(driverId);
+    }
+
+    @ApiOperation("按车辆ID查询当前绑定关系")
+    @GetMapping("/by-car/{carId}")
+    public Result<DriverCarBindingRelationship> getBindingByCarId(@PathVariable Long carId) {
+        return driverCarBindingRelationshipService.getBindingByCarId(carId);
     }
 
 }

@@ -1,4 +1,4 @@
-{
+﻿{
     "name" : "迅家出行",
     "appid" : "__UNI__AC6FD81",
     "description" : "迅家出行",
@@ -24,12 +24,12 @@
         "modules" : {
             "Geolocation" : {
                 "amap" : {
-                    "appkey_android" : "1a5c3e57f2014a4f523b81033a43520b"
+                    "appkey_android" : "YOUR_AMAP_ANDROID_KEY"
                 }
             },
             "Maps" : {
                 "amap" : {
-                    "appkey_android" : "1a5c3e57f2014a4f523b81033a43520b"
+                    "appkey_android" : "YOUR_AMAP_ANDROID_KEY"
                 }
             }
         },
@@ -63,7 +63,7 @@
                     "amap" : {
                         "name" : "amapl4YetdHX",
                         "__platform__" : [ "android", "ios" ],
-                        "appkey_android" : "1a5c3e57f2014a4f523b81033a43520b",
+                        "appkey_android" : "YOUR_AMAP_ANDROID_KEY",
                         "appkey_ios" : ""
                     }
                 },
@@ -71,7 +71,7 @@
                     "amap" : {
                         "name" : "amapl4YetdHX",
                         "__platform__" : [ "android" ],
-                        "appkey_android" : "1a5c3e57f2014a4f523b81033a43520b",
+                        "appkey_android" : "YOUR_AMAP_ANDROID_KEY",
                         "appkey_ios" : ""
                     }
                 }

@@ -1,17 +1,16 @@
+import local from './gdMapConf.local.js'
+
+// 真实 Key 在 gdMapConf.local.js（已被 .gitignore，不会进 GitHub）
+// 克隆仓库后请复制 gdMapConf.local.js.example → gdMapConf.local.js 并填写
 export default {
-    // 高德地图JS Api key
-    key:'000000000000000000000000000000',
-    // 高德地图JS Api key对应的秘钥，正式环境最好不要放前端
-    securityJsCode : '0000000000000000000000000',
-    // 城市获取key
-    cityKey : '00000000000000000000000000000000',
-    // 高德城市请求地址
-    cityApiUrl : 'https://restapi.amap.com/v3/config/district',
-    // 默认选中城市
+    key: local.key,
+    securityJsCode: local.securityJsCode,
+    cityKey: local.cityKey,
+    cityApiUrl: 'https://restapi.amap.com/v3/config/district',
     city: {
-        adcode: "110000",
-        center: "116.407387,39.904179",
-        citycode: "010",
-        name: "北京市"
+        adcode: '110000',
+        center: '116.407387,39.904179',
+        citycode: '010',
+        name: '北京市'
     }
 }

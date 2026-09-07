@@ -1,4 +1,4 @@
-import { MsbRequest } from '../plugins/requset';
+import { MsbRequest } from '../plugins/request';
 
 /**
  * @Description: 获取验证码

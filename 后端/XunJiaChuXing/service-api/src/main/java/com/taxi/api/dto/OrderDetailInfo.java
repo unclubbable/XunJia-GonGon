@@ -261,6 +261,11 @@ public class OrderDetailInfo implements Serializable {
     private Double price;
 
     /**
+     * 退款状态：0无 1退款中 2部分退 3全额退
+     */
+    private Integer refundStatus;
+
+    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)

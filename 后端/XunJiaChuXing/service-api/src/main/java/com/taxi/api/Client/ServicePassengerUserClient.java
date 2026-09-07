@@ -20,4 +20,7 @@ public interface ServicePassengerUserClient {
 
     @GetMapping("/passenger-user/{phone}")
     public Result<PassengerUser> getUserByPhone(@PathVariable("phone")String phone);
+
+    @PutMapping("/passenger-user")
+    public Result updateUser(@RequestBody PassengerUser passengerUser);
 }

@@ -2,95 +2,105 @@
 	"easycom": {
 	  "autoscan": true,
 	  "custom": {
-	    // uni-ui 规则如下配置
 	    "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
 	  }
 	},
-	//pages数组中第一项表示应用启动页，
 	"pages": [ 
 		{
-			"path": "pages/login",
+			"path": "pages/auth/login/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端",
 				"titleImage":"/static/driver-logo.png"
 			}
 		},
 		{
-			"path": "pages/index",
+			"path": "pages/home/index",
 			"style": {
-				// "navigationBarTitleText": "迅家出行-司机端",
 				"titleImage":"/static/driver-logo.png"
 			}
 		},
 		{
-			"path": "pages/city",
+			"path": "pages/order/detail/index",
 			"style": {
-				// "navigationBarTitleText": "迅家出行-司机端",
-				"titleImage":"/static/driver-logo.png"
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
 			}
 		},
 		{
-			"path": "pages/orderDetail",
-			"style": {
-				// "navigationBarTitleText": "迅家出行-司机端",
-				"titleImage":"/static/driver-logo.png"
-			}
-		},
-		{
-			"path" : "pages/my",
+			"path" : "pages/profile/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/monsy",
+			"path" : "pages/finance/money/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/myInfo",
+			"path" : "pages/profile/info/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/setOperatingCity",
+			"path" : "pages/order/list/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/orderInfo",
+			"path" : "pages/map/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
+			}
+		},
+		{
+			"path" : "pages/profile/terms/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/map",
+			"path" : "pages/profile/opinion/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/termsAndRules",
+			"path" : "pages/profile/payment/index",
 			"style": {
 				"navigationBarTitleText": "迅家出行-司机端"
 			}
 		},
 		{
-			"path" : "pages/opinion",
+			"path": "pages/ticket/list/index",
 			"style": {
-				"navigationBarTitleText": "迅家出行-司机端"
+				"navigationBarTitleText": "我的工单"
 			}
 		},
 		{
-			"path" : "pages/paymentSettings",
+			"path": "pages/ticket/create/index",
 			"style": {
-				"navigationBarTitleText": "迅家出行-司机端"
+				"navigationBarTitleText": "提交工单"
+			}
+		},
+		{
+			"path": "pages/ticket/detail/index",
+			"style": {
+				"navigationBarTitleText": "工单详情"
 			}
 		}
-
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
@@ -102,5 +112,15 @@
 		            "height": "100px",
 		            "borderRadius": "5%"
 		        }
+	},
+	"condition" : {
+		"current": 0,
+		"list": [
+			{
+				"name": "",
+				"path": "",
+				"query": ""
+			}
+		]
 	}
 }

@@ -24,19 +24,12 @@ public class DriverUserWorkStatus implements Serializable {
      * 收车：0；出车：1，暂停：2
      */
     private Integer workStatus;
-    /**
-     * 城市编码
-     */
-    private String citycode;
 
     /**
-     * 行政区名称
+     * 当前定位行政区划代码（出车校验用，非表字段）
      */
-    private String adname;
-    /**
-     * 行政区编码
-     */
-    private String adcode;
+    @TableField(exist = false)
+    private String address;
 
     /**
      * 创建时间

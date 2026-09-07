@@ -137,11 +137,12 @@
           <el-col :span="12">
             <el-form-item label="车辆类型" prop="vehicleType">
               <el-select v-model="formData.vehicleType" placeholder="请选择">
-                <el-option label="轿车" value="1" />
-                <el-option label="SUV" value="2" />
-                <el-option label="MPV" value="3" />
-                <el-option label="面包车" value="4" />
-                <el-option label="其他" value="9" />
+                <el-option
+                  v-for="item in vehicleTypeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -246,10 +247,28 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Download } from '@element-plus/icons-vue'
 import { getCarList, createOrUpdateCar, getCar, deleteCar } from '@/api/car'
 import { getDicDistrict } from '@/api/driverUser'
+import { getDictCarClassAll } from '@/api/dictCarClass'
 
 // ---------- 字典映射 ----------
-const vehicleTypeMap = { 1: '轿车', 2: 'SUV', 3: 'MPV', 4: '面包车', 9: '其他' }
+const vehicleTypeMap = ref({})
+const vehicleTypeOptions = ref([])
 const plateColorMap = { 1: '蓝色', 2: '黄色', 3: '黑色', 4: '白色', 5: '绿色', 9: '其他' }
+
+const loadVehicleTypeDict = async () => {
+  try {
+    const res = await getDictCarClassAll()
+    if (res.code === 1 && Array.isArray(res.data)) {
+      const map = {}
+      vehicleTypeOptions.value = res.data.map(item => {
+        map[item.classCode] = item.className
+        return { value: String(item.classCode), label: item.className }
+      })
+      vehicleTypeMap.value = map
+    }
+  } catch (e) {
+    console.error('获取车辆类型字典失败', e)
+  }
+}
 
 // ---------- 搜索表单 ----------
 const searchForm = reactive({
@@ -548,7 +567,7 @@ const exportToCSV = () => {
     { label: '品牌', prop: 'brand' },
     { label: '型号', prop: 'model' },
     { label: '座位数', prop: 'seats' },
-    { label: '车辆类型', formatter: (row) => vehicleTypeMap[row.vehicleType] || row.vehicleType },
+    { label: '车辆类型', formatter: (row) => vehicleTypeMap.value[row.vehicleType] || row.vehicleType },
     { label: '车牌颜色', formatter: (row) => plateColorMap[row.plateColor] || row.plateColor },
     { label: '所有人', prop: 'ownerName' },
     { label: '注册日期', formatter: (row) => formatDate(row.certifyDateA) },
@@ -584,6 +603,7 @@ const formatDate = (dateStr) => {
 
 // 生命周期
 onMounted(() => {
+  loadVehicleTypeDict()
   fetchDistrict()
   fetchCarList()
 })

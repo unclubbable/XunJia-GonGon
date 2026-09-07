@@ -23,6 +23,12 @@ public interface ServicePriceClient {
     @GetMapping("/price-rule/if-exists/{cityCode}/{vehicleType}")
     public Result<Boolean> ifPriceExists(@PathVariable String cityCode, @PathVariable String vehicleType);
 
+    @GetMapping("/price-rule/cities-by-vehicle-type/{vehicleType}")
+    Result listCitiesByVehicleType(@PathVariable String vehicleType);
+
+    @GetMapping("/price-rule/vehicle-types-by-city/{cityCode}")
+    Result listVehicleTypesByCity(@PathVariable String cityCode);
+
     @PostMapping("/calculate-price")
     public Result<Double> calculatePrice(@RequestParam Integer distance, @RequestParam Integer duration,
                                          @RequestParam String cityCode, @RequestParam String vehicleType);

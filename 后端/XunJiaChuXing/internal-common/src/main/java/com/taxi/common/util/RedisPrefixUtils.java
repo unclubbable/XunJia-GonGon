@@ -12,11 +12,7 @@ public class RedisPrefixUtils {
 
     //黑名单设备号
     public static final String BLACK_DEVICE_CODE_PREFIX="black-device-";
-    /**
-     * 根据手机号生成key
-     * @param passengerPhone 手机号
-     * @return
-     */
+    /** 验证码 redis key */
     public static String generatorPassengerKeyByPhone(String passengerPhone,String identity){
         return VERIFICATION_CODE_PREFIX+identity+"-"+passengerPhone;
     }
@@ -25,12 +21,7 @@ public class RedisPrefixUtils {
         return VERIFICATION_CODE_DRIVER+identity+"-"+driverPhone;
     }
 
-    /**
-     * 根据手机号和身份标识,生成token
-     * @param phone
-     * @param identity
-     * @return
-     */
+    /** token redis key */
     public static String generatorTokenKey(String phone,String identity,String tokenType){
         return TOKEN_PREFIX+phone+"-"+identity+"-"+tokenType;
     }

@@ -39,10 +39,24 @@ public class TerminalController {
         return terminalService.aroundsearch(aroundsearchResponse);
     }
 
-    @ApiOperation("轨迹查询")
+    /**
+     * 轨迹查询。
+     * <ul>
+     *   <li>simplifyType=1（默认）：全量点</li>
+     *   <li>simplifyType=2：按距离抽稀（distanceMeters，默认 20 米）</li>
+     *   <li>needPoints=true（默认）：从高德拉全点，再按 simplifyType 返回</li>
+     *   <li>needPoints=false：只返回里程/时长，供计价使用，不翻页拉点</li>
+     * </ul>
+     */
+    @ApiOperation("轨迹查询（可返回全量或抽稀后的轨迹点）")
     @PostMapping("/trsearch")
-    public Result trsearch(@RequestParam String tid,@RequestParam Long starttime,@RequestParam Long endtime){
-        return terminalService.trsearch(tid,starttime,endtime);
+    public Result trsearch(@RequestParam String tid,
+                           @RequestParam Long starttime,
+                           @RequestParam Long endtime,
+                           @RequestParam(required = false, defaultValue = "1") Integer simplifyType,
+                           @RequestParam(required = false) Double distanceMeters,
+                           @RequestParam(required = false, defaultValue = "true") Boolean needPoints) {
+        return terminalService.trsearch(tid, starttime, endtime, simplifyType, distanceMeters, needPoints);
     }
 
     @ApiOperation("修改终端")

@@ -35,6 +35,10 @@ const router = createRouter({
           component: () => import('../views/car/certificate.vue')
         },
         {
+          path: 'car/dict',               // 车辆类型管理
+          component: () => import('../views/car/dict.vue')
+        },
+        {
           path: 'binding',             // 绑定车辆
           component: () => import('../views/binding/index.vue')
         },
@@ -73,6 +77,18 @@ const router = createRouter({
         {
           path: 'monitor/fare',             // 运费规则
           component: () => import('../views/monitor/fare.vue')
+        },
+        {
+          path: 'ticket/list',              // 工单列表
+          component: () => import('../views/ticket/list.vue')
+        },
+        {
+          path: 'ticket/refund',            // 退款单
+          component: () => import('../views/ticket/refund.vue')
+        },
+        {
+          path: 'agent',                    // AI 协查占位
+          component: () => import('../views/agent/index.vue')
         },
         {
           path: 'android',             // 安卓端展示

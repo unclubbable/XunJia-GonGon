@@ -51,9 +51,7 @@
     "@dcloudio/uni-quickapp-webview": "3.0.0-3060520221121001",
     "@dcloudio/uni-ui": "^1.5.11",
     "@gykeji/jsutil": "^2.0.2",
-    "axios": "^1.6.2",
     "vue": "^3.2.37",
-    "vue-i18n": "^9.1.9",
     "vuex": "^4.1.0"
   },
   "devDependencies": {

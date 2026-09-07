@@ -12,4 +12,8 @@ public interface IDriverCarBindingRelationshipService extends IService<DriverCar
     Result unbind(DriverCarBindingRelationship driverCarBindingRelationship);
 
     Result<DriverCarBindingRelationship> getDriverCarRelationShipByDriverPhone(String driverPhone);
+
+    Result<DriverCarBindingRelationship> getBindingByDriverId(Long driverId);
+
+    Result<DriverCarBindingRelationship> getBindingByCarId(Long carId);
 }

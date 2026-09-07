@@ -23,6 +23,15 @@ export function addRule(data) {
   })
 }
 
+/** 同一城市批量新增各车型计价规则 */
+export function addRuleBatch(data) {
+  return request({
+    url: '/price-rule/add-batch',
+    method: 'post',
+    data
+  })
+}
+
 export function editRule(data) {
   return request({
     url: '/price-rule/edit',

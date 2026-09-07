@@ -7,11 +7,13 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.taxi.api.dto.Car;
 import com.taxi.api.dto.DriverCarBindingRelationship;
-import com.taxi.driverUser.mapper.CarMapper;
 import com.taxi.api.Client.ServiceMapClient;
 import com.taxi.api.response.TerminalResponse;
 import com.taxi.api.response.TrackResponse;
 import com.taxi.api.result.Result;
+import com.taxi.api.result.ResultCodeEnum;
+import com.taxi.api.util.FeignResultUtils;
+import com.taxi.driverUser.mapper.CarMapper;
 import com.taxi.driverUser.mapper.DriverCarBindingRelationshipMapper;
 import com.taxi.driverUser.service.ICarService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -32,31 +33,38 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, Car> implements ICarS
     private CarMapper carMapper;
     @Autowired
     private DriverCarBindingRelationshipMapper driverCarBindingRelationshipMapper;
+
     @Override
     public Result getCar(Long cid) {
+        if (cid == null) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "车辆ID不能为空");
+        }
         Car car = baseMapper.selectById(cid);
+        if (car == null) {
+            return Result.fail(ResultCodeEnum.CAR_NOT_EXISTS);
+        }
         return Result.ok(car);
     }
 
     @Override
     public Result addCar(Car car) {
+        if (car == null || StringUtils.isBlank(car.getVehicleNo())) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "车牌号不能为空");
+        }
         Long carId = car.getId();
-        // 判断是update还是insert
-        if( carId != null){  // update
+        if (carId != null) {
             Car mysqlCar = baseMapper.selectById(carId);
-            boolean empty = ObjectUtils.isEmpty(mysqlCar);
-            if(empty){
-                return Result.fail("无该车辆，无法更新");
+            if (ObjectUtils.isEmpty(mysqlCar)) {
+                return Result.fail(ResultCodeEnum.CAR_NOT_EXISTS);
             }
             baseMapper.updateById(car);
-        }else{  // insert
-            // 获取车辆终端tid
-            TerminalResponse result = serviceMapClient.addTerminal(car.getVehicleNo(), car.getVehicleNo()).getData();
+        } else {
+            TerminalResponse result = FeignResultUtils.checkAndGet(
+                    serviceMapClient.addTerminal(car.getVehicleNo(), car.getVehicleNo()));
             String tid = result.getTid();
             car.setTid(tid);
 
-            //获取车辆轨迹id
-            TrackResponse data = serviceMapClient.addTrack(tid).getData();
+            TrackResponse data = FeignResultUtils.checkAndGet(serviceMapClient.addTrack(tid));
             car.setTrid(data.getTrid());
             car.setTrname(data.getTrname());
             baseMapper.insert(car);
@@ -67,13 +75,10 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, Car> implements ICarS
     public Result getCarList(int page,int limit, String address, String vehicleNo){
         Page<Car> pageObj = new Page<>(page, limit);
 
-        // 创建LambdaQueryWrapper
         LambdaQueryWrapper<Car> queryWrapper = new LambdaQueryWrapper<>();
-        // 如果address不为空，添加到查询条件
         if (StringUtils.isNotEmpty(address)) {
             queryWrapper.eq(Car::getAddress, address);
         }
-        // 如果vehicleNo不为空，添加到查询条件
         if (StringUtils.isNotEmpty(vehicleNo)) {
             queryWrapper.eq(Car::getVehicleNo,vehicleNo);
         }
@@ -87,23 +92,23 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, Car> implements ICarS
 
     @Override
     public Result removeByCid(Long cid) {
-        // 查找绑定记录
+        if (cid == null) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "车辆ID不能为空");
+        }
         Long l = driverCarBindingRelationshipMapper.selectCount(
                 new QueryWrapper<DriverCarBindingRelationship>()
                         .eq("car_id", cid)
         );
-        // 如果没有绑定记录，则删除车辆
         if (l == 0) {
-            // 删除终端
             Car car = baseMapper.selectById(cid);
+            if (car == null) {
+                return Result.fail(ResultCodeEnum.CAR_NOT_EXISTS);
+            }
             serviceMapClient.deleteTerminal(car.getTid());
-            // 删除车辆
             baseMapper.deleteById(cid);
-        }
-        else {
-            return Result.fail().setMessage("该车辆有绑定记录，请先解除绑定");
+        } else {
+            return Result.fail(ResultCodeEnum.DRIVER_CAR_BIND_EXISTS, "该车辆有绑定记录，请先解除绑定");
         }
         return Result.ok();
     }
-
 }

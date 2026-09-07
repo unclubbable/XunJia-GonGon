@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 
 
 @RestController
+@RequestMapping("/driver-user") // 司机端接口统一根路径
 public class DriverUserController {
     @Autowired
     private DriverUserService driverUserService;

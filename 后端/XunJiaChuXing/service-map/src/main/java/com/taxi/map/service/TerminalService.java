@@ -21,8 +21,10 @@ public class TerminalService {
         return terminalClient.aroundsearch(aroundsearchResponse);
     }
 
-    public Result trsearch(String tid, Long starttime, Long endtime) {
-        return terminalClient.trsearch(tid,starttime,endtime);
+    /** 轨迹查询，可抽稀 */
+    public Result trsearch(String tid, Long starttime, Long endtime,
+                           Integer simplifyType, Double distanceMeters, Boolean needPoints) {
+        return terminalClient.trsearch(tid, starttime, endtime, simplifyType, distanceMeters, needPoints);
     }
 
     public Result update(PointResponse pointResponse) {

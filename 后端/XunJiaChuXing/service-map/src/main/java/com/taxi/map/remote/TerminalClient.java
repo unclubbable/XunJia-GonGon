@@ -1,11 +1,14 @@
 package com.taxi.map.remote;
 
-import cn.hutool.json.JSONUtil;
+import com.taxi.api.constant.TrackSimplifyType;
 import com.taxi.api.response.*;
-import com.taxi.common.constant.AmapConfigConstants;
 import com.taxi.api.result.Result;
+import com.taxi.api.result.ResultCodeEnum;
+import com.taxi.api.util.TrackSimplifyUtils;
+import com.taxi.common.constant.AmapConfigConstants;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -111,55 +115,239 @@ public class TerminalClient {
         return Result.ok(terminalResponses);
     }
 
+    /** 高德单页最大点数 */
+    private static final int AMAP_TRSEARCH_PAGE_SIZE = 999;
+
+    /** 翻页熔断，防死循环 */
+    private static final int AMAP_TRSEARCH_MAX_PAGE = 100;
+
+    /** 查终端轨迹，支持抽稀 / 不要点 */
+    public Result trsearch(String tid, Long starttime, Long endtime,
+                           Integer simplifyType, Double distanceMeters, Boolean needPoints) {
+        boolean wantPoints = needPoints == null || needPoints;
+        int type = simplifyType == null ? TrackSimplifyType.FULL : simplifyType;
+
+        // 计价：只要里程/时长，一页搞定
+        if (!wantPoints) {
+            JSONObject data = requestTrsearchPage(tid, starttime, endtime, 1, false);
+            if (data == null) {
+                return Result.fail(ResultCodeEnum.TRACK_DATA_EMPTY);
+            }
+            MileTime mileTime = sumMileTime(data);
+            if (mileTime == null) {
+                return Result.fail(ResultCodeEnum.TRACK_DATA_EMPTY);
+            }
+            TrsearchResponse response = new TrsearchResponse();
+            response.setDriveMile(mileTime.driveMile);
+            response.setDriveTime(mileTime.driveTime);
+            response.setSimplifyType(type);
+            response.setRawPointCount(0);
+            response.setPointCount(0);
+            response.setPoints(Collections.emptyList());
+            return Result.ok(response);
+        }
+
+        // 管理端画线：拉全点再抽稀
+        List<TrackPointDTO> rawPoints = new ArrayList<>();
+        MileTime mileTime = null;
+        int page = 1;
+        while (page <= AMAP_TRSEARCH_MAX_PAGE) {
+            JSONObject data = requestTrsearchPage(tid, starttime, endtime, page, true);
+            if (data == null) {
+                // 首页挂了当没轨迹；后面页挂了带已有点返回
+                if (page == 1) {
+                    return Result.fail(ResultCodeEnum.TRACK_DATA_EMPTY);
+                }
+                log.warn("轨迹翻页中断 tid={}, page={}, 已解析点数={}", tid, page, rawPoints.size());
+                break;
+            }
+
+            if (page == 1) {
+                mileTime = sumMileTime(data);
+                if (mileTime == null) {
+                    return Result.fail(ResultCodeEnum.TRACK_DATA_EMPTY);
+                }
+            }
+
+            int pagePointCount = appendPointsFromTracks(data, rawPoints);
+            log.debug("轨迹翻页 tid={}, page={}, 本页解析点数={}, 累计={}", tid, page, pagePointCount, rawPoints.size());
+
+            // 本页点数不足一页，说明已经拉完
+            if (pagePointCount < AMAP_TRSEARCH_PAGE_SIZE) {
+                break;
+            }
+            page++;
+        }
+
+        if (mileTime == null) {
+            return Result.fail(ResultCodeEnum.TRACK_DATA_EMPTY);
+        }
+
+        List<TrackPointDTO> outPoints = TrackSimplifyUtils.simplify(rawPoints, type, distanceMeters);
+        TrsearchResponse response = new TrsearchResponse();
+        response.setDriveMile(mileTime.driveMile);
+        response.setDriveTime(mileTime.driveTime);
+        response.setPoints(outPoints);
+        response.setRawPointCount(rawPoints.size());
+        response.setPointCount(outPoints.size());
+        response.setSimplifyType(type);
+
+        log.info("轨迹查询完成 tid={}, rawPoints={}, outPoints={}, simplifyType={}, pages~={}",
+                tid, rawPoints.size(), outPoints.size(), type, page);
+        return Result.ok(response);
+    }
+
+    /** 老接口：默认要全量点 */
     public Result trsearch(String tid, Long starttime, Long endtime) {
+        return trsearch(tid, starttime, endtime, TrackSimplifyType.FULL, null, true);
+    }
 
-//        //假数据start
-//        starttime=1701677051415l;
-//        endtime=1701679146426l;
-//        //假数据end
-
-        //拼装请求的url
+    /** 高德 trsearch 单页；withPoints=false 只要摘要 */
+    private JSONObject requestTrsearchPage(String tid, Long starttime, Long endtime,
+                                           int page, boolean withPoints) {
         StringBuilder url = new StringBuilder();
         url.append(AmapConfigConstants.TERMINAL_TRSEARCH);
         url.append("?");
-        url.append("key=" + amapKey);
+        url.append("key=").append(amapKey);
         url.append("&");
-        url.append("sid=" + amapSid);
+        url.append("sid=").append(amapSid);
         url.append("&");
-        url.append("tid=" + tid);
+        url.append("tid=").append(tid);
         url.append("&");
-        url.append("starttime=" + starttime);
+        url.append("starttime=").append(starttime);
         url.append("&");
-        url.append("endtime=" + endtime);
-
-        log.debug("轨迹查询请求url："+ url.toString() );
-        ResponseEntity<String> forEntity = restTemplate.getForEntity(url.toString(), String.class);
-        JSONObject result = JSONObject.fromObject(forEntity.getBody());
-        JSONObject data = result.getJSONObject("data");
-        if(data==null){
-            return Result.fail(result);
+        url.append("endtime=").append(endtime);
+        url.append("&");
+        url.append("ispoints=").append(withPoints ? 1 : 0);
+        if (withPoints) {
+            url.append("&");
+            url.append("page=").append(page);
+            url.append("&");
+            url.append("pagesize=").append(AMAP_TRSEARCH_PAGE_SIZE);
         }
-        int counts = data.getInt("counts");
-        if (counts == 0) {
+
+        try {
+            log.debug("轨迹查询请求url：{}", url);
+            ResponseEntity<String> forEntity = restTemplate.getForEntity(url.toString(), String.class);
+            String body = forEntity.getBody();
+            log.debug("轨迹查询结果 page={}：{}", page, body);
+
+            if (body == null || body.isEmpty()) {
+                return null;
+            }
+
+            JSONObject result = JSONObject.fromObject(body);
+            if (!result.has("data")) {
+                return null;
+            }
+            Object dataObj = result.get("data");
+            if (dataObj == null || dataObj instanceof JSONNull) {
+                return null;
+            }
+
+            JSONObject data = result.getJSONObject("data");
+            if (data == null || !data.has("counts")) {
+                return null;
+            }
+            if (data.getInt("counts") == 0) {
+                return null;
+            }
+            if (!data.has("tracks")) {
+                return null;
+            }
+            return data;
+        } catch (RestClientException ex) {
+            log.error("调用高德 trsearch 失败 tid={}, page={}, err={}", tid, page, ex.getMessage());
             return null;
         }
+    }
+
+    /** 累加里程/时长，只算第一页 */
+    private MileTime sumMileTime(JSONObject data) {
         JSONArray tracks = data.getJSONArray("tracks");
+        if (tracks == null || tracks.isEmpty()) {
+            return null;
+        }
         long driveMile = 0L;
         long driveTime = 0L;
         for (int i = 0; i < tracks.size(); i++) {
-            JSONObject jsonObject = tracks.getJSONObject(i);
-
-            long distance = jsonObject.getLong("distance");
-            driveMile = driveMile + distance;
-
-            long time = jsonObject.getLong("time");
-            time = time / (1000 * 60);
-            driveTime += time;
+            JSONObject track = tracks.getJSONObject(i);
+            if (track.has("distance")) {
+                driveMile += track.getLong("distance");
+            }
+            if (track.has("time")) {
+                // 高德 time 为毫秒，业务侧统一为分钟
+                driveTime += track.getLong("time") / (1000 * 60);
+            }
         }
-        TrsearchResponse trsearchResponse = new TrsearchResponse();
-        trsearchResponse.setDriveTime(driveTime);
-        trsearchResponse.setDriveMile(driveMile);
-        return Result.ok(trsearchResponse);
+        return new MileTime(driveMile, driveTime);
+    }
+
+    /** 解析本页 points，返回本页点数 */
+    private int appendPointsFromTracks(JSONObject data, List<TrackPointDTO> allPoints) {
+        JSONArray tracks = data.getJSONArray("tracks");
+        if (tracks == null || tracks.isEmpty()) {
+            return 0;
+        }
+        int parsed = 0;
+        for (int i = 0; i < tracks.size(); i++) {
+            JSONObject track = tracks.getJSONObject(i);
+            if (!track.has("points")) {
+                continue;
+            }
+            Object pointsObj = track.get("points");
+            if (pointsObj == null || pointsObj instanceof JSONNull) {
+                continue;
+            }
+            JSONArray points = track.getJSONArray("points");
+            for (int j = 0; j < points.size(); j++) {
+                TrackPointDTO point = parseTrackPoint(points.getJSONObject(j));
+                if (point != null) {
+                    allPoints.add(point);
+                    parsed++;
+                }
+            }
+        }
+        return parsed;
+    }
+
+    /** 解析单点，location=经度,纬度；坏了返回 null */
+    private TrackPointDTO parseTrackPoint(JSONObject pointJson) {
+        if (pointJson == null || !pointJson.has("location")) {
+            return null;
+        }
+        String location = pointJson.getString("location");
+        if (location == null || location.trim().isEmpty()) {
+            return null;
+        }
+        String[] parts = location.split(",");
+        if (parts.length < 2) {
+            log.warn("轨迹点 location 格式异常: {}", location);
+            return null;
+        }
+        TrackPointDTO dto = new TrackPointDTO();
+        dto.setLongitude(parts[0].trim());
+        dto.setLatitude(parts[1].trim());
+        if (pointJson.has("locatetime") && !(pointJson.get("locatetime") instanceof JSONNull)) {
+            try {
+                dto.setLocateTime(pointJson.getLong("locatetime"));
+            } catch (Exception ex) {
+                // 时间解析失败不影响画线
+                log.debug("轨迹点 locatetime 解析失败: {}", pointJson.get("locatetime"));
+            }
+        }
+        return dto;
+    }
+
+    /** 里程/时长内部载体 */
+    private static final class MileTime {
+        private final long driveMile;
+        private final long driveTime;
+
+        private MileTime(long driveMile, long driveTime) {
+            this.driveMile = driveMile;
+            this.driveTime = driveTime;
+        }
     }
 
     public Result update(PointResponse pointResponse) {

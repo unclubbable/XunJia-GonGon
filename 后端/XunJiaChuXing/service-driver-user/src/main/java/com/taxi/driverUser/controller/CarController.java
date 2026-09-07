@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@RequestMapping("/driver-user") // 司机端接口统一根路径
 public class CarController {
     @Autowired
     private ICarService iCarService;

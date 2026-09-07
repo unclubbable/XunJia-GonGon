@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.taxi.api.result.ResultCodeEnum;
 import com.taxi.common.constant.DriverCarConstants;
 import com.taxi.api.dto.Car;
 import com.taxi.api.dto.DriverCarBindingRelationship;
@@ -39,18 +40,14 @@ public class DriverUserService {
     public Result getDriverUserList(int page,int limit, String address, String phone,String state){
         Page<DriverUser> pageObj = new Page<>(page, limit);
 
-        // 创建LambdaQueryWrapper
         LambdaQueryWrapper<DriverUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DriverUser::getState,0);
-        // 如果address不为空，添加到查询条件
         if (StringUtils.isNotEmpty(address)) {
             queryWrapper.eq(DriverUser::getAddress, address);
         }
-        // 如果phone不为空，添加到查询条件
         if (StringUtils.isNotEmpty(phone)) {
             queryWrapper.like(DriverUser::getDriverPhone, phone);
         }
-        // 如果status不为空，添加到查询条件
         if (StringUtils.isNotEmpty(state)) {
             queryWrapper.eq(DriverUser::getState, state);
         }
@@ -64,11 +61,13 @@ public class DriverUserService {
 
     @Transactional
     public Result addDriverUser(DriverUser driverUser) {
+        if (driverUser == null || StringUtils.isBlank(driverUser.getDriverPhone())) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "司机手机号不能为空");
+        }
         DriverUser mysqlUser = driverUserMapper.selectById(driverUser.getId());
         if (ObjectUtils.isEmpty(mysqlUser)) {
             driverUserMapper.insert(driverUser);
 
-            //初始化 司机工作状态表
             DriverUserWorkStatus driverUserWorkStatus = new DriverUserWorkStatus();
             driverUserWorkStatus.setDriverId(driverUser.getId());
             driverUserWorkStatus.setWorkStatus(DriverCarConstants.DRIVER_WORK_STATUS_STOP);
@@ -87,35 +86,35 @@ public class DriverUserService {
         if (driverUsers.isEmpty()) {
             return null;
         }
-        DriverUser driverUser = driverUsers.get(0);
-
-        return driverUser;
+        return driverUsers.get(0);
     }
 
     @Autowired
     private DriverCarBindingRelationshipMapper driverCarBindingRelationshipMapper;
 
     public Result getAvailableDriver(String vehicleNo) {
+        if (StringUtils.isBlank(vehicleNo)) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "车牌号不能为空");
+        }
         OrderDriverResponse orderDriverResponse = new OrderDriverResponse();
 
-        //根据车牌号查询订单需要的司机信息
         QueryWrapper<DriverCarBindingRelationship> driverCarBindingRelationshipQueryWrapper = new QueryWrapper<>();
         driverCarBindingRelationshipQueryWrapper.eq("vehicle_no", vehicleNo);
         driverCarBindingRelationshipQueryWrapper.eq("bind_state", DriverCarConstants.DRIVER_CAR_BIND);
         DriverCarBindingRelationship driverCarBindingRelationship = driverCarBindingRelationshipMapper.selectOne(driverCarBindingRelationshipQueryWrapper);
-        //获取司机编号
+        if (ObjectUtils.isEmpty(driverCarBindingRelationship)) {
+            return Result.fail(ResultCodeEnum.DRIVER_CAR_NOT_BOUND);
+        }
         Long driverId = driverCarBindingRelationship.getDriverId();
 
-        //根据司机编号查询该司机工作状态
         QueryWrapper<DriverUserWorkStatus> wrapperUserWork = new QueryWrapper<>();
         wrapperUserWork.eq("driver_id", driverId);
         wrapperUserWork.eq("work_status", DriverCarConstants.DRIVER_WORK_STATUS_START);
         DriverUserWorkStatus driverUserWorkStatus = driverUserWorkStatusMapper.selectOne(wrapperUserWork);
         if (ObjectUtils.isEmpty(driverUserWorkStatus)) {
-            return Result.fail().message("该司机未出车");
+            return Result.fail(ResultCodeEnum.DRIVER_NOT_WORKING);
         }
 
-        //获取车辆信息
         QueryWrapper<Car> carQueryWrapper = new QueryWrapper<>();
         carQueryWrapper.eq("vehicle_no", vehicleNo);
         carQueryWrapper.eq("state", 0);
@@ -126,7 +125,6 @@ public class DriverUserService {
             orderDriverResponse.setVehicleType(car.getVehicleType());
         }
 
-        //根据司机编号查询司机信息，获取司机手机号,然后封装返回
         QueryWrapper<DriverUser> driverUserQueryWrapper = new QueryWrapper<>();
         driverUserQueryWrapper.eq("id", driverId);
         DriverUser driverUser = driverUserMapper.selectOne(driverUserQueryWrapper);
@@ -141,12 +139,24 @@ public class DriverUserService {
     }
 
     public Result<DriverUser> getDriverInfoById(Long driverId) {
+        if (driverId == null) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "司机ID不能为空");
+        }
         DriverUser driverUser = driverUserMapper.selectById(driverId);
+        if (driverUser == null) {
+            return Result.fail(ResultCodeEnum.DRIVER_NOT_EXITST);
+        }
         return Result.ok(driverUser);
     }
 
     public Result addDriverTotalOrders(Long driverId) {
+        if (driverId == null) {
+            return Result.fail(ResultCodeEnum.PARAM_ERROR, "司机ID不能为空");
+        }
         DriverUser driverUser = driverUserMapper.selectById(driverId);
+        if (driverUser == null) {
+            return Result.fail(ResultCodeEnum.DRIVER_NOT_EXITST);
+        }
         driverUser.setTotalOrders(driverUser.getTotalOrders() + 1);
         driverUserMapper.updateById(driverUser);
         return Result.ok();

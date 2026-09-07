@@ -1,0 +1,104 @@
+{
+  "name": "ticket_assist_phase4",
+  "description": "小评测集：退款建议 / 执行建议 / 拒答边界（人工看结果即可）",
+  "cases": [
+    {
+      "id": "refund_overcharge_with_order",
+      "expect": {
+        "need_refund_field": true,
+        "suggest_refund_may_be": [true, false],
+        "must_not_actions_without_evidence": [],
+        "caution_contains": "退款"
+      },
+      "input": {
+        "thread_id": "eval-refund-001",
+        "ticket_id": 9001,
+        "operator_name": "admin",
+        "ticket": {
+          "id": 9001,
+          "ticketNo": "T-EVAL-R1",
+          "source": 1,
+          "category": "OVERCHARGE",
+          "status": "OPEN",
+          "title": "多收费",
+          "content": "同一段路程比平时多收了30元，怀疑计价异常，希望退差额。",
+          "orderId": 88001,
+          "passengerPhone": "13800001111"
+        },
+        "messages": [
+          { "senderName": "乘客", "content": "请帮忙核实账单" }
+        ]
+      }
+    },
+    {
+      "id": "no_order_no_refund",
+      "expect": {
+        "suggest_refund": false,
+        "forbid_action": "REFUND_CREATE"
+      },
+      "input": {
+        "thread_id": "eval-norefund-001",
+        "ticket_id": 9002,
+        "operator_name": "admin",
+        "ticket": {
+          "id": 9002,
+          "ticketNo": "T-EVAL-R2",
+          "source": 1,
+          "category": "ATTITUDE",
+          "status": "OPEN",
+          "title": "态度问题",
+          "content": "司机语气不好，没有订单号。",
+          "orderId": null
+        },
+        "messages": []
+      }
+    },
+    {
+      "id": "execute_change_city_ok_payload",
+      "expect": {
+        "need_execute_field": true,
+        "caution_contains": "通过并执行"
+      },
+      "input": {
+        "thread_id": "eval-exec-001",
+        "ticket_id": 9003,
+        "operator_name": "admin",
+        "ticket": {
+          "id": 9003,
+          "ticketNo": "T-EVAL-E1",
+          "source": 2,
+          "category": "CHANGE_CITY",
+          "status": "IN_PROGRESS",
+          "title": "申请改城市",
+          "content": "希望把运营城市改为杭州",
+          "driverPhone": "13900002222",
+          "requestPayload": "{\"targetAddress\":\"杭州\",\"reason\":\"搬家\"}"
+        },
+        "messages": []
+      }
+    },
+    {
+      "id": "execute_bind_vehicle_missing_payload",
+      "expect": {
+        "need_execute_field": true,
+        "suggest_approve_prefer": false
+      },
+      "input": {
+        "thread_id": "eval-exec-002",
+        "ticket_id": 9004,
+        "operator_name": "admin",
+        "ticket": {
+          "id": 9004,
+          "ticketNo": "T-EVAL-E2",
+          "source": 2,
+          "category": "BIND_VEHICLE",
+          "status": "OPEN",
+          "title": "绑车申请",
+          "content": "想绑定新车",
+          "requestPayload": "{}"
+        },
+        "messages": []
+      }
+    }
+  ]
+}

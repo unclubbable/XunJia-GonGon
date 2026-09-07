@@ -8,6 +8,15 @@ export function getOrderList(query){
   })
 }
 
+/** 嵌套订单详情 { order, trip }，管理端专用 */
+export function getOrderDetailNested(orderId) {
+  return request({
+    url: '/order/detail-nested',
+    method: 'get',
+    params: { orderId }
+  })
+}
+
 export function updateOrder(data){
     return request({
         url: '/order/update',

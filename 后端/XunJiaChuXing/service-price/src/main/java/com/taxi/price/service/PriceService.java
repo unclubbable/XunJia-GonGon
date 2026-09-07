@@ -9,6 +9,7 @@ import com.taxi.api.response.DirectionResponse;
 import com.taxi.api.response.ForecastPriceResponse;
 import com.taxi.api.result.Result;
 import com.taxi.api.result.ResultCodeEnum;
+import com.taxi.api.util.FeignResultUtils;
 import com.taxi.common.util.BigDecimalUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,8 @@ public class PriceService {
 
     public Result forecastPrice(ForecastPriceDOT forecastPriceDOT) {
         // 远程调用地图服务获取时长和距离
-        DirectionResponse direction = serviceMapClient.driving(forecastPriceDOT).getData();
+        DirectionResponse direction = FeignResultUtils.checkAndGet(
+                serviceMapClient.driving(forecastPriceDOT), ResultCodeEnum.MAP_DISTRICT_ERROR);
         Integer distance = direction.getDistance();
         Integer duration = direction.getDuration();
 
@@ -45,7 +47,7 @@ public class PriceService {
         wrapper.orderByDesc("fare_version");
         List<PriceRule> priceRules = priceRuleMapper.selectList(wrapper);
         if (ObjectUtils.isEmpty(priceRules)) {
-            return Result.fail().message("当前城市无计价规则");
+            return Result.fail(ResultCodeEnum.PRICE_RULE_EMPTY);
         }
         PriceRule priceRule = priceRules.get(0);
 

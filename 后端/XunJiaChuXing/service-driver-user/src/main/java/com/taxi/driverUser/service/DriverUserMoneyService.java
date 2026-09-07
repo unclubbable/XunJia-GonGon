@@ -69,34 +69,65 @@ public class DriverUserMoneyService {
     }
 
     public Result addMoneyByDriverId(Long driverId, Double money) {
-        //获取用户当月订单金额
-        QueryWrapper driverUserMoneyQueryWrapper = new QueryWrapper<DriverUserMoney>()
-                .eq("driver_id",driverId)
+        if (driverId == null || money == null) {
+            return Result.fail().message("司机ID和金额不能为空");
+        }
+        return adjustMoneyByDriverId(driverId, money);
+    }
+
+    /**
+     * 退款回退司机当月收入（与入账同一 80/20 比例）。
+     * amount 传正数表示扣减。
+     */
+    public Result deductMoneyByDriverId(Long driverId, Double amount) {
+        if (driverId == null || amount == null || amount <= 0) {
+            return Result.fail().message("扣减金额必须大于0");
+        }
+        return adjustMoneyByDriverId(driverId, -amount);
+    }
+
+    private Result adjustMoneyByDriverId(Long driverId, Double money) {
+        QueryWrapper<DriverUserMoney> driverUserMoneyQueryWrapper = new QueryWrapper<DriverUserMoney>()
+                .eq("driver_id", driverId)
                 .eq("year", LocalDate.now().getYear())
                 .eq("month", LocalDate.now().getMonthValue());
         List<DriverUserMoney> list = driverUserMoneyMapper.selectList(driverUserMoneyQueryWrapper);
-        // 判断用户当月订单有无
-        if (list.size()<=0){
-            //当月订单无
+        if (list == null || list.isEmpty()) {
+            if (money < 0) {
+                // 当月无账本时仍落一笔负向记录，保证可追溯
+                DriverUserMoney driverUserMoney = new DriverUserMoney();
+                driverUserMoney.setDriverId(driverId);
+                driverUserMoney.setYear(Long.valueOf(LocalDate.now().getYear()));
+                driverUserMoney.setMonth(Long.valueOf(LocalDate.now().getMonthValue()));
+                driverUserMoney.setTotalOrderAmount(money);
+                driverUserMoney.setDriverIncome(money * 0.8);
+                driverUserMoney.setPlatformCommission(money - money * 0.8);
+                driverUserMoney.setStatus(0L);
+                driverUserMoneyMapper.insert(driverUserMoney);
+                return Result.ok();
+            }
             DriverUserMoney driverUserMoney = new DriverUserMoney();
             driverUserMoney.setDriverId(driverId);
             driverUserMoney.setYear(Long.valueOf(LocalDate.now().getYear()));
             driverUserMoney.setMonth(Long.valueOf(LocalDate.now().getMonthValue()));
-            driverUserMoney.setTotalOrderAmount(Double.valueOf(money));
-            driverUserMoney.setDriverIncome(money*0.8);
-            driverUserMoney.setPlatformCommission(money-money*0.8);
+            driverUserMoney.setTotalOrderAmount(money);
+            driverUserMoney.setDriverIncome(money * 0.8);
+            driverUserMoney.setPlatformCommission(money - money * 0.8);
             driverUserMoney.setStatus(0L);
             driverUserMoneyMapper.insert(driverUserMoney);
-        }
-        else{
-            //当月订单有
+        } else {
             DriverUserMoney driverUserMoney = list.get(0);
-            driverUserMoney.setTotalOrderAmount(driverUserMoney.getTotalOrderAmount()+money);
-            driverUserMoney.setDriverIncome(driverUserMoney.getDriverIncome()+money*0.8);
-            driverUserMoney.setPlatformCommission(driverUserMoney.getPlatformCommission()+money-money*0.8);
+            driverUserMoney.setTotalOrderAmount(safeAdd(driverUserMoney.getTotalOrderAmount(), money));
+            driverUserMoney.setDriverIncome(safeAdd(driverUserMoney.getDriverIncome(), money * 0.8));
+            driverUserMoney.setPlatformCommission(safeAdd(driverUserMoney.getPlatformCommission(), money - money * 0.8));
             driverUserMoneyMapper.updateById(driverUserMoney);
         }
         return Result.ok();
+    }
+
+    private double safeAdd(Double base, double delta) {
+        double b = base == null ? 0D : base;
+        return b + delta;
     }
 
     public Result getMoneyList() {

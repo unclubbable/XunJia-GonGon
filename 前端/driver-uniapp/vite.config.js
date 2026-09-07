@@ -7,9 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://"+url + ":7072",
+        target: "http://"+url + ":7071",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, "/")
+        rewrite: (path) => path.replace(/^\/api/, "/driver-user")
       },
       "/sseApi": {
         target: "ws://"+url + ":9000",

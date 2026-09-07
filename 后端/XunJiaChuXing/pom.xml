@@ -4,7 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <modules>
-        <module>service-verificationcode</module>
         <module>internal-common</module>
         <module>service-passenger-user</module>
         <module>service-price</module>
@@ -13,12 +12,10 @@
         <module>service-boss-user</module>
         <module>service-order</module>
         <module>service-websocket</module>
-        <module>service-pay</module>
-        <module>service-dispatch</module>
         <module>service-api</module>
-        <module>gateweb-boss</module>
-        <module>gateweb-driver</module>
-        <module>gateweb-passenger</module>
+        <module>service-ticket</module>
+        <module>service-ai</module>
+        <module>gateweb</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

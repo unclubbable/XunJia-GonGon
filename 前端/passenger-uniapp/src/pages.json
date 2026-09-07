@@ -8,85 +8,112 @@
 	},
 	"pages": [  
 		{
-			"path": "pages/index/index",
+			"path": "pages/home/index",
 			"style": {
-				// "navigationBarTitleText": "迅家出行",
-				"titleImage": "/static/passenger-logo.png"
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
 			}
 		},
 		{
-			"path": "pages/city",
-			"style": {
-				// "navigationBarTitleText": "迅家出行",
-				"titleImage": "/static/passenger-logo.png"
-			}
-		},
-		{
-			"path": "pages/createOrder",
+			"path": "pages/home/city/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path": "pages/orderDetail",
+			"path": "pages/order/create/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path": "pages/pay"
-			// "style": {
-			// 	"titleImage": "/static/passenger-logo.png"
-			// }
+			"path": "pages/order/detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false,
+					"bounce": "none"
+				}
+			}
 		},
 		{
-			"path": "pages/login",
+			"path": "pages/order/pay/index"
+		},
+		{
+			"path": "pages/auth/login/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path": "pages/account",
+			"path": "pages/dev/account",
 			"style": {
+				"navigationBarTitleText": "服务端地址(调试)",
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path" : "pages/orderInfo",
+			"path" : "pages/order/list/index",
 			"app-plus":{
-				"scrollIndicator":"none" //当前页面不显示滚动条
+				"scrollIndicator":"none"
 			},
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path" : "pages/my",
+			"path" : "pages/profile/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path" : "pages/myInfo",
+			"path" : "pages/profile/info/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path" : "pages/paymentSettings",
+			"path" : "pages/profile/payment/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path": "pages/termsAndRules",
+			"path": "pages/profile/terms/index",
 			"style": {
 				"titleImage": "/static/passenger-logo.png"
 			}
 		},
 		{
-			"path": "pages/opinion",
+			"path": "pages/profile/opinion/index",
 			"style": {
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/ticket/list/index",
+			"style": {
+				"navigationBarTitleText": "我的工单",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/ticket/create/index",
+			"style": {
+				"navigationBarTitleText": "提交工单",
+				"titleImage": "/static/passenger-logo.png"
+			}
+		},
+		{
+			"path": "pages/ticket/detail/index",
+			"style": {
+				"navigationBarTitleText": "工单详情",
 				"titleImage": "/static/passenger-logo.png"
 			}
 		}
@@ -105,7 +132,7 @@
 		"iconfontSrc": "/static/icon/iconfont.ttf",
 		"list": [
 			{
-				"pagePath": "pages/index/index",
+				"pagePath": "pages/home/index",
 				"text": "首页",
 				"iconfont": {
 					"text": "\ue622",
@@ -116,7 +143,7 @@
 				}
 			},
 			{
-				"pagePath": "pages/orderInfo",
+				"pagePath": "pages/order/list/index",
 				"text": "订单",
 				"iconfont": {
 					"text": "\ue64e",
@@ -127,7 +154,7 @@
 				}
 			},
 			{
-				"pagePath": "pages/my",
+				"pagePath": "pages/profile/index",
 				"text": "我的",
 				"iconfont": {
 					"text": "\ue62b",

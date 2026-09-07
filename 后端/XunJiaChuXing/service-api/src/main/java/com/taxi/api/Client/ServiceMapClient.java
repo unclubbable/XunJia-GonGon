@@ -20,8 +20,16 @@ public interface ServiceMapClient {
     @PostMapping("/terminal/aroundsearch")
     public Result<List<TerminalResponse>> aroundsearch(@RequestBody AroundsearchResponse aroundsearchResponse);
 
+    /**
+     * 轨迹查询。计价 needPoints=false；管理端画线 true，simplifyType 1全量/2抽稀。
+     */
     @PostMapping("/terminal/trsearch")
-    public Result<TrsearchResponse> trsearch(@RequestParam String tid, @RequestParam Long starttime, @RequestParam Long endtime);
+    Result<TrsearchResponse> trsearch(@RequestParam("tid") String tid,
+                                      @RequestParam("starttime") Long starttime,
+                                      @RequestParam("endtime") Long endtime,
+                                      @RequestParam(value = "simplifyType", required = false) Integer simplifyType,
+                                      @RequestParam(value = "distanceMeters", required = false) Double distanceMeters,
+                                      @RequestParam(value = "needPoints", required = false) Boolean needPoints);
 
     @PostMapping("/terminal/add")
     public Result<TerminalResponse> addTerminal(@RequestParam("name") String name,@RequestParam(value = "desc",required = false)String desc);

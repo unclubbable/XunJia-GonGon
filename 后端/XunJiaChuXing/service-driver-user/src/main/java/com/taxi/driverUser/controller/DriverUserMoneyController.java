@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/driver-user-money")
+@RequestMapping("/driver-user/driver-user-money") // 司机端接口统一根路径
 public class DriverUserMoneyController {
     @Autowired
     private DriverUserMoneyService driverUserMoneyService;
@@ -39,5 +39,13 @@ public class DriverUserMoneyController {
             @PathVariable Long driverId,
             @RequestBody Double Money){
         return driverUserMoneyService.addMoneyByDriverId(driverId,Money);
+    }
+
+    @ApiOperation("退款回退司机收入（金额传正数）")
+    @PostMapping("/{driverId}/deduct")
+    public Result deductMoneyByDriverId(
+            @PathVariable Long driverId,
+            @RequestBody Double money) {
+        return driverUserMoneyService.deductMoneyByDriverId(driverId, money);
     }
 }

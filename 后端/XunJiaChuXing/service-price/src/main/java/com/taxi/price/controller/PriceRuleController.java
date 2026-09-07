@@ -4,6 +4,7 @@ import com.taxi.api.dto.PriceRule;
 import com.taxi.api.request.PriceRuleIsNewRequest;
 import com.taxi.api.result.Result;
 import com.taxi.price.service.PriceRuleService;
+import com.taxi.price.vo.PriceRuleBatchAddRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class PriceRuleController {
     private PriceRuleService priceRuleService;
 
 
-    @ApiOperation("获取所有计价规则")
+    @ApiOperation("按城市获取计价规则（每车型最新版本）")
     @GetMapping("/list")
     public Result getRulesList(@RequestParam int page, @RequestParam int limit, @RequestParam(required=false) String cityCode){
         return priceRuleService.getRulesList(page,limit,cityCode);
@@ -25,6 +26,12 @@ public class PriceRuleController {
     @PostMapping("/add")
     public Result add(@RequestBody PriceRule priceRule){
         return priceRuleService.add(priceRule);
+    }
+
+    @ApiOperation("同一城市批量添加各车型计价规则")
+    @PostMapping("/add-batch")
+    public Result addBatch(@RequestBody PriceRuleBatchAddRequest request){
+        return priceRuleService.addBatch(request);
     }
 
     @ApiOperation("更新计价规则")
@@ -49,5 +56,17 @@ public class PriceRuleController {
     @GetMapping("/if-exists/{cityCode}/{vehicleType}")
     public Result ifPriceExists(@PathVariable String cityCode,@PathVariable String vehicleType){
         return priceRuleService.ifExists(cityCode,vehicleType);
+    }
+
+    @ApiOperation("按车型查询已配置计价规则的城市编码列表")
+    @GetMapping("/cities-by-vehicle-type/{vehicleType}")
+    public Result listCitiesByVehicleType(@PathVariable String vehicleType) {
+        return Result.ok(priceRuleService.listCityCodesByVehicleType(vehicleType));
+    }
+
+    @ApiOperation("按城市查询已配置计价规则的车型编码列表")
+    @GetMapping("/vehicle-types-by-city/{cityCode}")
+    public Result listVehicleTypesByCity(@PathVariable String cityCode) {
+        return Result.ok(priceRuleService.listVehicleTypesByCity(cityCode));
     }
 }

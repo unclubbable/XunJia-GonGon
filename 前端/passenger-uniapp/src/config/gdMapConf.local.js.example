@@ -1,0 +1,5 @@
+export default {
+    key: 'YOUR_AMAP_WEB_KEY',
+    securityJsCode: 'YOUR_AMAP_SECURITY_JS_CODE',
+    cityKey: 'YOUR_AMAP_WEB_SERVICE_KEY'
+}

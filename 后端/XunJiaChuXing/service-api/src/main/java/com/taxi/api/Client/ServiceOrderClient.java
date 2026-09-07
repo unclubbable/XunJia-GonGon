@@ -1,7 +1,9 @@
 package com.taxi.api.Client;
 
 import com.taxi.api.dto.OrderInfo;
+import com.taxi.api.request.AlipayRefundRequest;
 import com.taxi.api.request.OrderRequest;
+import com.taxi.api.response.AlipayRefundResponse;
 import com.taxi.api.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,5 +21,8 @@ public interface ServiceOrderClient {
 
     @PostMapping("/order/update")
     public Result updateOrder(@RequestBody OrderInfo orderInfo);
+
+    @PostMapping("/alipay/refund")
+    Result<AlipayRefundResponse> alipayRefund(@RequestBody AlipayRefundRequest request);
 
 }

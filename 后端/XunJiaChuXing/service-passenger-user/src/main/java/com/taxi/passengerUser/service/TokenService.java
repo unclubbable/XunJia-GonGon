@@ -21,11 +21,7 @@ public class TokenService {
     @Autowired
     StringRedisTemplate redisTemplate;
 
-    /**
-     * 刷新双token,只有登录成功才会执行这个方法
-     * @param refreshTokenSrc
-     * @return
-     */
+    /** 刷新双 token（仅登录后） */
     public Result refreshToken(String refreshTokenSrc){
         //解析refreshtoklen
         TokenResult tokenResult = JwtUtils.parseToken(refreshTokenSrc);

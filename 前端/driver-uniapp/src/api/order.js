@@ -1,4 +1,4 @@
-import { MsbRequest } from "../plugins/requset";
+import { MsbRequest } from "../plugins/request";
 
 const ApiGetOrderDetail = (data= {orderId}) => MsbRequest.get('/order/detail',data);
 
@@ -6,6 +6,11 @@ const ApiGetOrderDetail = (data= {orderId}) => MsbRequest.get('/order/detail',da
  * 通过id获取当前订单详情
  */
 const ApiGetCurrentOrderDetail = ({orderId}) =>MsbRequest.get('/order/current-order-detail',{orderId});
+
+/**
+ * 完成后行程轨迹回放（按 orderId，后端鉴权）
+ */
+const ApiGetOrderTrack = ({ orderId }) => MsbRequest.get('/order/track', { orderId });
 
 const ApiPostOrderCancel = ({orderId}) => MsbRequest.post('/order/cancel',{orderId},{
   'content-type':'application/x-www-form-urlencoded'
@@ -81,5 +86,6 @@ export {
   ApiPostOrderPayInfo,
   ApiGetCurrentOrder,
   ApiGetCurrentOrderDetail,
+  ApiGetOrderTrack,
   ApiGetAllOrderInfo
 }

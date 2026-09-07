@@ -47,7 +47,7 @@ public class Car{
     private String model;
 
     /**
-     * 车辆类型(1:轿车  2：suv  3.MPV  4.面包车  9：其他)
+     * 车辆类型编码，关联 dict_car_class.class_code
      */
     private String vehicleType;
 

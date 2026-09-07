@@ -65,39 +65,46 @@ public class OrderInfo implements Serializable {
     private Date orderTime;
 
     /**
-     * 预计用车时间
+     * 预计用车时间（持久化在 order_trip，扁平接口回填用）
      */
+    @TableField(exist = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date departTime;
 
     /**
-     * 预计出发地点详细地址
+     * 预计出发地点详细地址（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String departure;
 
     /**
-     * 预计出发地点经度
+     * 预计出发地点经度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String depLongitude;
 
     /**
-     * 预计出发地点纬度
+     * 预计出发地点纬度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String depLatitude;
 
     /**
-     * 预计目的地
+     * 预计目的地（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String destination;
 
     /**
-     * 预计目的地经度
+     * 预计目的地经度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String destLongitude;
 
     /**
-     * 预计目的地纬度
+     * 预计目的地纬度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String destLatitude;
 
     /**
@@ -115,18 +122,21 @@ public class OrderInfo implements Serializable {
     private Integer fareVersion;
 
     /**
-     * 接单时车辆经度
+     * 接单时车辆经度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String receiveOrderCarLongitude;
 
     /**
-     * 接单时车辆纬度
+     * 接单时车辆纬度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String receiveOrderCarLatitude;
 
     /**
-     * 接单时间，派单成功时间
+     * 接单时间，派单成功时间（持久化在 order_trip）
      */
+    @TableField(exist = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime receiveOrderTime;
 
@@ -141,62 +151,73 @@ public class OrderInfo implements Serializable {
     private String vehicleNo;
 
     /**
-     * 司机去接乘客出发时间
+     * 司机去接乘客出发时间（持久化在 order_trip）
      */
+    @TableField(exist = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime toPickUpPassengerTime;
 
     /**
-     * 去接乘客时，司机的经度
+     * 去接乘客时，司机的经度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String toPickUpPassengerLongitude;
 
     /**
-     * 去接乘客时，司机的纬度
+     * 去接乘客时，司机的纬度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String toPickUpPassengerLatitude;
 
     /**
-     * 去接乘客时，司机的地点
+     * 去接乘客时，司机的地点（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String toPickUpPassengerAddress;
 
     /**
-     * 司机到达上车点时间
+     * 司机到达上车点时间（持久化在 order_trip）
      */
+    @TableField(exist = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime driverArrivedDepartureTime;
 
     /**
-     * 接到乘客，乘客上车时间
+     * 接到乘客，乘客上车时间（持久化在 order_trip）
      */
+    @TableField(exist = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime pickUpPassengerTime;
 
     /**
-     * 接到乘客，乘客上车经度
+     * 接到乘客，乘客上车经度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String pickUpPassengerLongitude;
 
     /**
-     * 接到乘客，乘客上车纬度
+     * 接到乘客，乘客上车纬度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String pickUpPassengerLatitude;
 
     /**
-     * 乘客下车时间
+     * 乘客下车时间（持久化在 order_trip）
      */
+    @TableField(exist = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime passengerGetoffTime;
 
     /**
-     * 乘客下车经度
+     * 乘客下车经度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String passengerGetoffLongitude;
 
     /**
-     * 乘客下车纬度
+     * 乘客下车纬度（持久化在 order_trip）
      */
+    @TableField(exist = false)
     private String passengerGetoffLatitude;
 
     /**
@@ -237,6 +258,11 @@ public class OrderInfo implements Serializable {
      * 价格
      */
     private Double price;
+
+    /**
+     * 退款状态：0无 1退款中 2部分退 3全额退
+     */
+    private Integer refundStatus;
 
     /**
      * 创建时间

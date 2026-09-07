@@ -91,7 +91,7 @@
       <el-table :data="filteredOnlineDrivers" v-loading="loading" border stripe style="width: 100%">
         <el-table-column prop="driverName" label="司机姓名" min-width="120" />
         <el-table-column prop="driverPhone" label="手机号" width="130" />
-        <el-table-column prop="adname" label="运营城市" width="120" />
+        <el-table-column prop="cityName" label="运营城市" width="120" />
         <el-table-column label="最后在线时间" width="160">
           <template #default="{ row }">
             {{ formatDate(row.gmtModified) }}
@@ -113,11 +113,12 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { UserFilled, User, DataAnalysis, Location, Search, Refresh } from '@element-plus/icons-vue'
 import { getWorkStatus } from '@/api/workStatus'
-import { getDriverUserList } from '@/api/driverUser'
+import { getDriverUserList, getDicDistrict } from '@/api/driverUser'
 
 // 原始数据
 const driverList = ref([])        // 全部司机信息
 const workStatusList = ref([])    // 工作状态列表
+const districtNameMap = ref(new Map())
 const loading = ref(false)
 const searchKeyword = ref('')
 const autoRefresh = ref(false)
@@ -134,7 +135,7 @@ const combinedData = computed(() => {
     return {
       ...driver,
       workStatus: status?.workStatus ?? 0,
-      adname: status?.adname || '未知',
+      cityName: districtNameMap.value.get(driver.address) || driver.address || '未知',
       gmtModified: status?.gmtModified || driver.gmtModified
     }
   })
@@ -160,7 +161,7 @@ const onlineCount = computed(() => onlineDrivers.value.length)
 const totalDriverCount = computed(() => combinedData.value.length)
 const onlineRate = computed(() => totalDriverCount.value ? (onlineCount.value / totalDriverCount.value) * 100 : 0)
 const cityCount = computed(() => {
-  const cities = new Set(onlineDrivers.value.map(d => d.adname).filter(c => c && c !== '未知'))
+  const cities = new Set(onlineDrivers.value.map(d => d.cityName).filter(c => c && c !== '未知'))
   return cities.size
 })
 
@@ -194,10 +195,18 @@ const fetchData = async () => {
   loading.value = true
   try {
     // 并发请求司机列表和工作状态
-    const [driverRes, statusRes] = await Promise.all([
+    const [driverRes, statusRes, districtRes] = await Promise.all([
       getDriverUserList({ page: 1, limit: 1000 }),
-      getWorkStatus()
+      getWorkStatus(),
+      getDicDistrict()
     ])
+    if (districtRes.code === 1 && districtRes.data) {
+      const map = new Map()
+      districtRes.data.forEach(item => {
+        if (item.addressCode) map.set(item.addressCode, item.addressName)
+      })
+      districtNameMap.value = map
+    }
     if (driverRes.code === 1 && driverRes.data) {
       driverList.value = driverRes.data.items || []
     } else {

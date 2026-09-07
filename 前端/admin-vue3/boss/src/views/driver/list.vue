@@ -36,6 +36,11 @@
       <el-table :data="tableData" v-loading="loading" border stripe style="width: 100%">
         <el-table-column prop="id" label="司机ID" width="80" align="center" />
         <el-table-column prop="driverName" label="姓名" min-width="100" />
+        <el-table-column label="运营城市" width="120">
+          <template #default="{ row }">
+            {{ getCityName(row.address) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="driverPhone" label="手机号" width="130" />
         <el-table-column prop="driverGender" label="性别" width="70" align="center">
           <template #default="{ row }">
@@ -368,6 +373,12 @@ const total = ref(0)
 
 // ---------- 地区字典（级联选择器选项）----------
 const districtOptions = ref([])
+const districtNameMap = ref(new Map())
+
+const getCityName = (addressCode) => {
+  if (!addressCode) return '-'
+  return districtNameMap.value.get(addressCode) || addressCode
+}
 
 // 获取地区字典并构建树形结构
 const fetchDistrict = async () => {
@@ -375,6 +386,11 @@ const fetchDistrict = async () => {
     const res = await getDicDistrict()
     if (res.code === 1 && res.data) {
       const flatData = res.data
+      const nameMap = new Map()
+      flatData.forEach(item => {
+        if (item.addressCode) nameMap.set(item.addressCode, item.addressName)
+      })
+      districtNameMap.value = nameMap
       // 构建树形结构 (根据 parentAddressCode)
       const map = new Map()
       const roots = []

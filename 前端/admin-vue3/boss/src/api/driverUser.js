@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getDriverUserByDriverId(DriverId) {
   return request({
-    url: '/get-driver-info/' + DriverId,
+    url: '/driver-user/get-driver-info/' + DriverId,
     method: 'get'
   })
 }
@@ -10,7 +10,7 @@ export function getDriverUserByDriverId(DriverId) {
 
 export function createOrUpdateDriverUser(data) {
   return request({
-    url: '/driver-user',
+    url: '/driver-user/driver-user',
     method: 'post',
     data
   })
@@ -18,7 +18,7 @@ export function createOrUpdateDriverUser(data) {
 
 export function getDriverUserList(query){
   return request({
-    url:'/driver-user/list',
+    url:'/driver-user/driver-user/list',
     method: 'get',
     params: query
   })
@@ -32,4 +32,3 @@ export function getDicDistrict(){
     method: 'get'
   })
 }
-

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/city-driver")
+@RequestMapping("/driver-user/city-driver") // 司机端接口统一根路径
 public class CityDriverController {
     @Autowired
     private CityDriverUserService cityDriverUserService;

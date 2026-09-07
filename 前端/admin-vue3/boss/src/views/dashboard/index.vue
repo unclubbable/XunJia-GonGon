@@ -148,11 +148,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import {
-  UserFilled, Van, List, Money, CaretTop, Plus, Monitor, Bell, WarningFilled
+  UserFilled, Van, List, Money, CaretTop, Plus, Monitor
 } from '@element-plus/icons-vue'
 import { getDriverUserList } from '@/api/driverUser'
 import { getCarList } from '@/api/car'
@@ -160,6 +160,29 @@ import { getOrderList } from '@/api/order'
 import { getWorkStatus } from '@/api/workStatus'
 
 const router = useRouter()
+
+/** 本地日期 YYYY-MM-DD（避免 toISOString 的 UTC 偏移） */
+const formatLocalDate = (date) => {
+  const d = date instanceof Date ? date : new Date(date)
+  if (Number.isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/** 生成连续日期：含今天，共 days 天 */
+const buildDateRange = (days) => {
+  const result = []
+  const end = new Date()
+  end.setHours(0, 0, 0, 0)
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(end)
+    d.setDate(end.getDate() - i)
+    result.push(formatLocalDate(d))
+  }
+  return result
+}
 
 // 统计数据
 const stats = ref({
@@ -176,6 +199,9 @@ const offlineCount = ref(0)
 // 趋势图表类型
 const trendType = ref('week')
 
+// 按天聚合缓存：{ orders: 全部订单数, income: 已支付金额 }
+const dayStatsMap = ref(new Map())
+
 // 图表容器
 const trendChartRef = ref(null)
 const pieChartRef = ref(null)
@@ -184,11 +210,8 @@ let pieChart = null
 
 // 日历数据
 const calendarValue = ref(new Date())
-const calendarOrderMap = ref({})  // key: YYYY-MM-DD, value: 订单数
+const calendarOrderMap = ref({})
 
-
-
-// 当前时间问候语
 const currentTime = computed(() => {
   const hour = new Date().getHours()
   if (hour < 6) return '凌晨好'
@@ -198,18 +221,15 @@ const currentTime = computed(() => {
   return '晚上好'
 })
 
-// 格式化金额
 const formatMoney = (val) => {
-  if (val === undefined) return '0.00'
-  return val.toFixed(2)
+  if (val === undefined || val === null) return '0.00'
+  return Number(val).toFixed(2)
 }
 
-// 跳转
 const goTo = (path) => {
   router.push(path)
 }
 
-// 获取司机总数
 const fetchDriverTotal = async () => {
   try {
     const res = await getDriverUserList({ page: 1, limit: 1 })
@@ -221,7 +241,6 @@ const fetchDriverTotal = async () => {
   }
 }
 
-// 获取车辆总数
 const fetchVehicleTotal = async () => {
   try {
     const res = await getCarList({ page: 1, limit: 1 })
@@ -233,79 +252,76 @@ const fetchVehicleTotal = async () => {
   }
 }
 
-// 获取订单数据（用于今日统计、趋势、日历）
+/**
+ * 口径统一：
+ * - 订单量：当日全部订单（含未支付/进行中）
+ * - 收入：仅已支付（orderStatus === 8）的 price 合计
+ */
 const fetchOrderData = async () => {
   try {
-    // 获取全部订单（假设数据量不大，一次性获取）
     const res = await getOrderList({ page: 1, limit: 1000 })
-    if (res.code === 1 && res.data) {
-      const orders = res.data.items || []
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const todayStr = today.toISOString().slice(0, 10)
+    if (res.code !== 1 || !res.data) return
 
-      // 今日统计
-      let todayOrderCount = 0
-      let todayIncomeTotal = 0
-      // 日历聚合
-      const orderMap = {}
-      // 趋势数据聚合（按天）
-      const dayMap = new Map() // key: YYYY-MM-DD, value: { orders, income }
+    const orders = res.data.items || []
+    const todayStr = formatLocalDate(new Date())
+    let todayOrderCount = 0
+    let todayIncomeTotal = 0
+    const orderMap = {}
+    const dayMap = new Map()
 
-      orders.forEach(order => {
-        const orderDate = new Date(order.orderTime)
-        const dateStr = orderDate.toISOString().slice(0, 10)
-        // 只统计已完成支付的订单（orderStatus === 8）用于收入
-        const isPaid = order.orderStatus === 8
-        const amount = order.price || 0
+    orders.forEach((order) => {
+      if (!order.orderTime) return
+      const dateStr = formatLocalDate(order.orderTime)
+      if (!dateStr) return
 
-        // 今日统计
-        if (dateStr === todayStr) {
-          todayOrderCount++
-          if (isPaid) todayIncomeTotal += amount
-        }
+      const isPaid = order.orderStatus === 8
+      const amount = Number(order.price) || 0
 
-        // 日历聚合（所有订单）
-        orderMap[dateStr] = (orderMap[dateStr] || 0) + 1
+      if (!dayMap.has(dateStr)) {
+        dayMap.set(dateStr, { orders: 0, income: 0 })
+      }
+      const dayData = dayMap.get(dateStr)
+      dayData.orders += 1
+      if (isPaid) dayData.income += amount
 
-        // 趋势聚合（仅已支付订单，用于收入趋势）
-        if (isPaid) {
-          if (!dayMap.has(dateStr)) {
-            dayMap.set(dateStr, { orders: 0, income: 0 })
-          }
-          const dayData = dayMap.get(dateStr)
-          dayData.orders += 1
-          dayData.income += amount
-        }
-      })
+      orderMap[dateStr] = (orderMap[dateStr] || 0) + 1
 
-      stats.value.todayOrders = todayOrderCount
-      stats.value.todayIncome = todayIncomeTotal
-      calendarOrderMap.value = orderMap
+      if (dateStr === todayStr) {
+        todayOrderCount += 1
+        if (isPaid) todayIncomeTotal += amount
+      }
+    })
 
-      // 准备趋势数据
-      const sortedDates = Array.from(dayMap.keys()).sort()
-      // 取最近30天
-      const last30Days = sortedDates.slice(-30)
-      const orderTrend = last30Days.map(d => dayMap.get(d).orders)
-      const incomeTrend = last30Days.map(d => dayMap.get(d).income)
+    stats.value.todayOrders = todayOrderCount
+    stats.value.todayIncome = todayIncomeTotal
+    calendarOrderMap.value = orderMap
+    dayStatsMap.value = dayMap
 
-      // 渲染趋势图
-      renderTrendChart(last30Days, orderTrend, incomeTrend)
-    }
+    await nextTick()
+    applyTrendChart()
   } catch (error) {
     console.error('获取订单数据失败', error)
   }
 }
 
-// 获取工作状态（在线/离线统计）
+/** 按近7天 / 近30天补齐连续日期并渲染 */
+const applyTrendChart = () => {
+  const days = trendType.value === 'week' ? 7 : 30
+  const dates = buildDateRange(days)
+  const map = dayStatsMap.value
+  const orderTrend = dates.map((d) => map.get(d)?.orders || 0)
+  const incomeTrend = dates.map((d) => Number((map.get(d)?.income || 0).toFixed(2)))
+  renderTrendChart(dates, orderTrend, incomeTrend)
+}
+
 const fetchWorkStatus = async () => {
   try {
     const res = await getWorkStatus()
     if (res.code === 1 && res.data) {
       const statusList = res.data
-      onlineCount.value = statusList.filter(s => s.workStatus === 1).length
-      offlineCount.value = statusList.filter(s => s.workStatus === 0).length
+      onlineCount.value = statusList.filter((s) => s.workStatus === 1).length
+      offlineCount.value = statusList.filter((s) => s.workStatus === 0).length
+      await nextTick()
       renderPieChart()
     }
   } catch (error) {
@@ -313,11 +329,11 @@ const fetchWorkStatus = async () => {
   }
 }
 
-// 渲染趋势图（折线图 + 柱状图混合）
 const renderTrendChart = (xAxisData, orderData, incomeData) => {
   if (!trendChartRef.value) return
-  if (trendChart) trendChart.dispose()
-  trendChart = echarts.init(trendChartRef.value)
+  if (!trendChart) {
+    trendChart = echarts.init(trendChartRef.value)
+  }
 
   const option = {
     tooltip: {
@@ -338,14 +354,18 @@ const renderTrendChart = (xAxisData, orderData, incomeData) => {
     xAxis: {
       type: 'category',
       data: xAxisData,
-      axisLabel: { rotate: 45, interval: 6 }
+      axisLabel: {
+        rotate: 45,
+        interval: trendType.value === 'week' ? 0 : Math.max(0, Math.floor(xAxisData.length / 8) - 1)
+      }
     },
     yAxis: [
       {
         type: 'value',
         name: '订单量',
         position: 'left',
-        alignTicks: true
+        alignTicks: true,
+        minInterval: 1
       },
       {
         type: 'value',
@@ -358,14 +378,17 @@ const renderTrendChart = (xAxisData, orderData, incomeData) => {
       {
         name: '订单量',
         type: 'bar',
-        barWidth: '30%',
+        barWidth: trendType.value === 'week' ? '40%' : '45%',
         data: orderData,
         itemStyle: {
           borderRadius: [6, 6, 0, 0],
           color: {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [{ offset: 0, color: '#1890ff' }, { offset: 1, color: '#69c0ff' }]
+            colorStops: [
+              { offset: 0, color: '#1890ff' },
+              { offset: 1, color: '#69c0ff' }
+            ]
           }
         }
       },
@@ -382,14 +405,14 @@ const renderTrendChart = (xAxisData, orderData, incomeData) => {
       }
     ]
   }
-  trendChart.setOption(option)
+  trendChart.setOption(option, true)
 }
 
-// 渲染饼图（在线/离线占比）
 const renderPieChart = () => {
   if (!pieChartRef.value) return
-  if (pieChart) pieChart.dispose()
-  pieChart = echarts.init(pieChartRef.value)
+  if (!pieChart) {
+    pieChart = echarts.init(pieChartRef.value)
+  }
 
   const option = {
     tooltip: { trigger: 'item' },
@@ -413,21 +436,18 @@ const renderPieChart = () => {
       }
     ]
   }
-  pieChart.setOption(option)
+  pieChart.setOption(option, true)
 }
 
-// 查看全部订单（跳转）
 const handleViewMoreOrders = () => {
   router.push('/order/list')
 }
 
-// 监听趋势类型切换（目前只做近7/30天，数据已全量，只需重新筛选）
+// 切换近7/30天：用已缓存聚合结果重绘，不重复请求
 watch(trendType, () => {
-  // 重新获取订单数据并重新渲染（简单粗暴）
-  fetchOrderData()
+  applyTrendChart()
 })
 
-// 初始化所有数据
 const initDashboard = async () => {
   await Promise.all([
     fetchDriverTotal(),
@@ -437,7 +457,6 @@ const initDashboard = async () => {
   ])
 }
 
-// 窗口大小变化重新渲染图表
 const handleResize = () => {
   if (trendChart) trendChart.resize()
   if (pieChart) pieChart.resize()
@@ -448,8 +467,6 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
 
-// 清理
-import { onUnmounted } from 'vue'
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   if (trendChart) trendChart.dispose()

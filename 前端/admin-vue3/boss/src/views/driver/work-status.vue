@@ -104,7 +104,6 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="adname" label="运营城市" width="120" />
             <el-table-column prop="gmtModified" label="最后更新时间" width="160">
               <template #default="{ row }">
                 {{ formatDate(row.gmtModified) }}
@@ -162,7 +161,6 @@ const mergedData = computed(() => {
     return {
       ...driver,
       workStatus: status.workStatus !== undefined ? status.workStatus : 0, // 默认离线
-      adname: status.adname || '未知',
       gmtModified: status.gmtModified || driver.gmtModified
     }
   })
@@ -189,7 +187,7 @@ const onlineCount = computed(() => mergedData.value.filter(item => item.workStat
 const offlineCount = computed(() => mergedData.value.filter(item => item.workStatus === 0).length)
 const totalDriverCount = computed(() => mergedData.value.length)
 const cityCount = computed(() => {
-  const cities = new Set(mergedData.value.map(item => item.adname).filter(c => c && c !== '未知'))
+  const cities = new Set(mergedData.value.map(item => item.address).filter(Boolean))
   return cities.size
 })
 
@@ -246,8 +244,7 @@ const handleFilter = () => {
 
 // 修改工作状态
 const handleStatusChange = async (row) => {
-  console.log(row);
-
+  const previousStatus = row.workStatus === 1 ? 0 : 1
   try {
     const res = await changeWorkStatus({
       driverId: row.id,
@@ -265,7 +262,6 @@ const handleStatusChange = async (row) => {
         workStatusList.value.push({
           driverId: row.id,
           workStatus: row.workStatus,
-          adname: row.adname,
           gmtModified: new Date().toISOString()
         })
       }
@@ -273,12 +269,11 @@ const handleStatusChange = async (row) => {
       renderChart()
     } else {
       ElMessage.error(res.message || '修改失败')
-      // 回滚
-      row.workStatus = originalStatus
+      row.workStatus = previousStatus
     }
   } catch (error) {
     ElMessage.error('请求失败')
-    row.workStatus = originalStatus
+    row.workStatus = previousStatus
   }
 }
 // Echart图表
