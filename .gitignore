@@ -41,7 +41,9 @@ Thumbs.db
 Agent/.venv/
 Agent/__pycache__/
 Agent/**/__pycache__/
+Agent/**/*.py[cod]
 Agent/*.egg-info/
+Agent/**/*.egg-info/
 Agent/.pytest_cache/
 Agent/.mypy_cache/
 Agent/.ruff_cache/

@@ -1,11 +1,15 @@
-﻿# Normalize line endings
-* text=auto eol=lf
-# Binary files
+﻿# Auto-detect text; do NOT force eol on all files (breaks PNG CR bytes if misapplied)
+* text=auto
+
+# Images / binaries must never get EOL conversion
 *.png binary
 *.jpg binary
 *.jpeg binary
+*.gif binary
 *.webp binary
 *.ico binary
+*.bmp binary
+*.mp4 binary
 *.pdf binary
 *.jar binary
 *.war binary
@@ -21,7 +25,8 @@
 *.p12 binary
 *.pem binary
 *.key binary
-# Large demo media via Git LFS
+
+# Large demo media via Git LFS (overrides binary above for these paths)
 assets/android/*.mp4 filter=lfs diff=lfs merge=lfs -text
 assets/android/*.gif filter=lfs diff=lfs merge=lfs -text
 前端/admin-vue3/boss/src/assets/android/*.mp4 filter=lfs diff=lfs merge=lfs -text
