@@ -517,19 +517,5 @@ flowchart TD
 
 **中间件依赖（本地/联调常见）**：Nacos、MySQL、Redis、RabbitMQ、Seata；Agent 另需 Embedding/LLM 密钥、Qdrant、Langfuse（按 `Agent` 配置）。
 
-## 十一、本地密钥配置（上传 GitHub 前必读）
-
-仓库内公开配置只用占位符；真实密钥放在本地私密文件（已被 `.gitignore` 忽略）。
-
-| 端 | 公开文件 | 本地私密文件（不提交） | 示例模板 |
-|----|----------|------------------------|----------|
-| Java 各服务 | `application.yml` | `application-local.yml` | `application-local.yml.example` |
-| Python Agent | — | `Agent/.env` | `Agent/.env.example` |
-| 乘客/司机端地图 | `gdMapConf.js` | `gdMapConf.local.js`（静态 import） | `gdMapConf.local.js.example` |
-| 管理端地图 | `config/amap.js` | `.env.local` 或 `amap.local.js` | `.env.example` |
-| uni-app 原生地图 | `manifest.json` 占位 | `config/amap-android.local.txt` | 打包前把 Key 填回 manifest |
-
-新人克隆后：复制各 `*.example` → 去掉 `.example`，填入自己的密钥即可本地运行。
-
 ---
 
