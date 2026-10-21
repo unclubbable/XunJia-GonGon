@@ -4,9 +4,10 @@ import com.taxi.api.dto.DriverUserMoney;
 import com.taxi.api.result.Result;
 import com.taxi.driverUser.service.DriverUserMoneyService;
 import io.swagger.annotations.ApiOperation;
-import org.apache.ibatis.annotations.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/driver-user/driver-user-money") // 司机端接口统一根路径
@@ -37,7 +38,7 @@ public class DriverUserMoneyController {
     @PostMapping("/{driverId}")
     public Result addMoneyByDriverId(
             @PathVariable Long driverId,
-            @RequestBody Double Money){
+            @RequestBody BigDecimal Money){
         return driverUserMoneyService.addMoneyByDriverId(driverId,Money);
     }
 
@@ -45,7 +46,7 @@ public class DriverUserMoneyController {
     @PostMapping("/{driverId}/deduct")
     public Result deductMoneyByDriverId(
             @PathVariable Long driverId,
-            @RequestBody Double money) {
+            @RequestBody BigDecimal money) {
         return driverUserMoneyService.deductMoneyByDriverId(driverId, money);
     }
 }

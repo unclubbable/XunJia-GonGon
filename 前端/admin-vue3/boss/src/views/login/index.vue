@@ -93,10 +93,11 @@
 import { reactive, ref, nextTick, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { login } from '../../api/user'
+import { login, getLoginPublicKey } from '../../api/user'
 import { setToken } from '../../utils/auth'
 import { ElMessage } from 'element-plus'
 import { User, Lock, View, Hide, Van } from '@element-plus/icons-vue'
+import JSEncrypt from 'jsencrypt'
 
 // 路由与状态管理
 const router = useRouter()
@@ -143,30 +144,42 @@ const togglePasswordVisibility = () => {
   })
 }
 
-// 登录提交
+const encryptPassword = async (plainPassword) => {
+  const res = await getLoginPublicKey()
+  const publicKey = res.data?.publicKey
+  if (!publicKey) {
+    throw new Error('获取登录公钥失败')
+  }
+  const encryptor = new JSEncrypt()
+  encryptor.setPublicKey(publicKey)
+  const cipher = encryptor.encrypt(plainPassword)
+  if (!cipher) {
+    throw new Error('密码加密失败')
+  }
+  return cipher
+}
+
+// 登录提交（密码经 RSA 公钥加密后再发送）
 const handleLogin = () => {
-  loginFormRef.value?.validate((valid) => {
-    if (valid) {
-      loading.value = true
-      login(loginForm)
-        .then((res) => {
-          setToken(res.data.token);
-          ElMessage({
-            message: '登录成功',
-            type: 'success',
-          });
-          router.push({ path: '/' });
-        })
-        .catch(() => {
-          // 登录失败，不做额外处理
-          ElMessage.error('登录失败')
-        })
-        .finally(() => {
-          loading.value = false
-        })
-    } else {
+  loginFormRef.value?.validate(async (valid) => {
+    if (!valid) {
       ElMessage.error('登录验证失败')
       return false
+    }
+    loading.value = true
+    try {
+      const encryptedPassword = await encryptPassword(loginForm.password)
+      const res = await login({
+        username: loginForm.username,
+        password: encryptedPassword
+      })
+      setToken(res.data.token)
+      ElMessage({ message: '登录成功', type: 'success' })
+      router.push({ path: '/' })
+    } catch {
+      ElMessage.error('登录失败')
+    } finally {
+      loading.value = false
     }
   })
 }

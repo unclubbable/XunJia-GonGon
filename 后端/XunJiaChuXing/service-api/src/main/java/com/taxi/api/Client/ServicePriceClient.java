@@ -6,6 +6,8 @@ import com.taxi.api.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @FeignClient("service-price")
 public interface ServicePriceClient {
     @GetMapping("/price-rule/list")
@@ -30,6 +32,6 @@ public interface ServicePriceClient {
     Result listVehicleTypesByCity(@PathVariable String cityCode);
 
     @PostMapping("/calculate-price")
-    public Result<Double> calculatePrice(@RequestParam Integer distance, @RequestParam Integer duration,
-                                         @RequestParam String cityCode, @RequestParam String vehicleType);
+    public Result<BigDecimal> calculatePrice(@RequestParam Integer distance, @RequestParam Integer duration,
+                                             @RequestParam String cityCode, @RequestParam String vehicleType);
 }

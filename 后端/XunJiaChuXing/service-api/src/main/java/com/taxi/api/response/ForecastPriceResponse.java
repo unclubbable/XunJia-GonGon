@@ -2,6 +2,8 @@ package com.taxi.api.response;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 
 @Data
 public class ForecastPriceResponse {
@@ -14,7 +16,7 @@ public class ForecastPriceResponse {
     //距离
     private double distanceMile;
     //价格
-    private double price;
+    private BigDecimal price;
 
     /**
      * 版本，默认1，修改往上增。

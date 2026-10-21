@@ -9,6 +9,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import com.taxi.api.response.OrderDriverResponse;
 
+import java.math.BigDecimal;
+
 
 /**
  * 司机用户服务 Feign 客户端，调用路径统一带 /driver-user 前缀
@@ -64,10 +66,10 @@ public interface ServiceDriverUserClient {
     public Result getMoneyByDriverIdYearMonth(@PathVariable Long driverId,@PathVariable Integer RecentlyMonth);
 
     @PostMapping("/driver-user/driver-user-money/{driverId}")
-    public Result addMoneyByDriverId(@PathVariable Long driverId,@RequestBody Double Money);
+    public Result addMoneyByDriverId(@PathVariable Long driverId, @RequestBody BigDecimal Money);
 
     @PostMapping("/driver-user/driver-user-money/{driverId}/deduct")
-    Result deductMoneyByDriverId(@PathVariable Long driverId, @RequestBody Double money);
+    Result deductMoneyByDriverId(@PathVariable Long driverId, @RequestBody BigDecimal money);
 
     @GetMapping("/driver-user/dict-car-class/all")
     public Result getDictCarClassAll();

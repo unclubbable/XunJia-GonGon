@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -30,17 +28,14 @@ public class PriceService {
     private PriceRuleMapper priceRuleMapper;
 
     public Result forecastPrice(ForecastPriceDOT forecastPriceDOT) {
-        // 远程调用地图服务获取时长和距离
         DirectionResponse direction = FeignResultUtils.checkAndGet(
                 serviceMapClient.driving(forecastPriceDOT), ResultCodeEnum.MAP_DISTRICT_ERROR);
         Integer distance = direction.getDistance();
         Integer duration = direction.getDuration();
 
-        //获取城市编码和车辆类型
         String cityCode = forecastPriceDOT.getCityCode();
         String vehicleType = forecastPriceDOT.getVehicleType();
 
-        //读取计价规则
         QueryWrapper<PriceRule> wrapper = new QueryWrapper<>();
         wrapper.eq("city_code", cityCode);
         wrapper.eq("vehicle_type", vehicleType);
@@ -51,64 +46,45 @@ public class PriceService {
         }
         PriceRule priceRule = priceRules.get(0);
 
-        HashMap<String, Double> priceInfoMap = getPrice(distance, duration, priceRule);
-        double distanceMile = priceInfoMap.get("distanceMile");
-        double timeMinute = priceInfoMap.get("timeMinute");
-        double price = priceInfoMap.get("price");
+        PriceCalcResult calc = getPrice(distance, duration, priceRule);
 
         ForecastPriceResponse forecastPriceResponse = new ForecastPriceResponse();
-        forecastPriceResponse.setTimeMinute(timeMinute);
-        forecastPriceResponse.setDistanceMile(distanceMile);
-        forecastPriceResponse.setPrice(price);
+        forecastPriceResponse.setTimeMinute(calc.timeMinute.doubleValue());
+        forecastPriceResponse.setDistanceMile(calc.distanceMile.doubleValue());
+        forecastPriceResponse.setPrice(calc.price);
         forecastPriceResponse.setCityCode(cityCode);
         forecastPriceResponse.setVehicleType(vehicleType);
-        // 预估时返回运价类型和版本号，用于下单时判断计价规则是否是最新的
         forecastPriceResponse.setFareType(priceRule.getFareType());
         forecastPriceResponse.setFareVersion(priceRule.getFareVersion());
         return Result.ok(forecastPriceResponse);
     }
 
-    private HashMap<String,Double> getPrice(Integer distance, Integer duration, PriceRule priceRule) {
-        HashMap<String,Double> priceInfoMap = new HashMap<String, Double>();
-        double price = 0;
+    private PriceCalcResult getPrice(Integer distance, Integer duration, PriceRule priceRule) {
+        BigDecimal price = BigDecimal.ZERO;
         // 起步价
-        double startFare = priceRule.getStartFare();
-        price = BigDecimalUtils.add(price,startFare);
+        price = BigDecimalUtils.add(price, priceRule.getStartFare());
 
-        // 里程费
-        // 总里程 km
-        double distanceMile = BigDecimalUtils.divide(distance,1000);
-        priceInfoMap.put("distanceMile", distanceMile);
-        // 起步里程
-        double startMile = (double)priceRule.getStartMile();
-        double distanceSubtract = BigDecimalUtils.substract(distanceMile,startMile);
-        // 最终收费的里程数 km
-        double mile = distanceSubtract<0?0:distanceSubtract;
-        // 计程单价 元/km
-        double unitPricePerMile = priceRule.getUnitPricePerMile();
-        // 里程价格
-        double mileFare = BigDecimalUtils.multiply(mile,unitPricePerMile);
-        price = BigDecimalUtils.add(price,mileFare);
+        // 里程费：总里程 km
+        BigDecimal distanceMile = BigDecimalUtils.divide(distance, 1000);
+        BigDecimal startMile = BigDecimal.valueOf(priceRule.getStartMile());
+        BigDecimal distanceSubtract = BigDecimalUtils.substract(distanceMile, startMile);
+        BigDecimal mile = distanceSubtract.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : distanceSubtract;
+        BigDecimal mileFare = BigDecimalUtils.multiply(mile, priceRule.getUnitPricePerMile());
+        price = BigDecimalUtils.add(price, mileFare);
 
-        // 时长费
-        // 时长的分钟数
-        double timeMinute = BigDecimalUtils.divide(duration,60);
-        priceInfoMap.put("timeMinute", timeMinute);
-        // 计时单价
-        double unitPricePerMinute = priceRule.getUnitPricePerMinute();
+        // 时长费：分钟
+        BigDecimal timeMinute = BigDecimalUtils.divide(duration, 60);
+        BigDecimal timeFare = BigDecimalUtils.multiply(timeMinute, priceRule.getUnitPricePerMinute());
+        price = BigDecimalUtils.add(price, timeFare);
 
-        // 时长费用
-        double timeFare = BigDecimalUtils.multiply(timeMinute,unitPricePerMinute);
-        price = BigDecimalUtils.add(price,timeFare);
-
-        BigDecimal priceBigDecimal = new BigDecimal(price);
-        priceBigDecimal = priceBigDecimal.setScale(2, RoundingMode.HALF_UP);
-        priceInfoMap.put("price", priceBigDecimal.doubleValue());
-        return priceInfoMap;
+        PriceCalcResult result = new PriceCalcResult();
+        result.distanceMile = distanceMile;
+        result.timeMinute = timeMinute;
+        result.price = BigDecimalUtils.money(price);
+        return result;
     }
 
     public Result calculatePrice(Integer distance, Integer duration, String cityCode, String vehicleType) {
-        //读取计价规则
         QueryWrapper<PriceRule> wrapper = new QueryWrapper<>();
         wrapper.eq("city_code", cityCode);
         wrapper.eq("vehicle_type", vehicleType);
@@ -119,9 +95,13 @@ public class PriceService {
         }
 
         PriceRule priceRule = priceRules.get(0);
-
-        //获取价格
-        double price = getPrice(distance, duration, priceRule).get("price");
+        BigDecimal price = getPrice(distance, duration, priceRule).price;
         return Result.ok(price);
+    }
+
+    private static class PriceCalcResult {
+        private BigDecimal price;
+        private BigDecimal distanceMile;
+        private BigDecimal timeMinute;
     }
 }

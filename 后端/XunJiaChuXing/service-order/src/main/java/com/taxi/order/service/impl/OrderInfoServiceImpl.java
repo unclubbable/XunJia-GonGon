@@ -1,4 +1,4 @@
-﻿package com.taxi.order.service.impl;
+package com.taxi.order.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -12,6 +12,7 @@ import com.taxi.api.request.PushRequest;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.OrderConstants;
 import com.taxi.api.dto.*;
+import com.taxi.order.rabbitMQ.RabbitMQConfig;
 import com.taxi.order.rabbitMQ.RabbitMQProducer;
 import com.taxi.order.mapper.OrderInfoMapper;
 import com.taxi.api.constant.TrackSimplifyType;
@@ -42,6 +43,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.math.BigDecimal;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -134,7 +137,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         try {
             // MQ 消息仍带扁平行程字段，供派单直接使用起终点，无需再查库
             String orderInfoJson = objectMapper.writeValueAsString(orderInfo);
-            rabbitMQProducer.sendMessage("travel-topic", orderInfoJson);
+            rabbitMQProducer.sendMessage(RabbitMQConfig.TRAVEL_TOPIC, orderInfoJson);
         } catch (Exception e) {
             log.error("订单消息发送失败, orderId={}", orderInfo.getId(), e);
         }
@@ -336,7 +339,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
         String address = orderInfo.getAddress();
         String vehicleType = orderInfo.getVehicleType();
-        Double price = FeignResultUtils.checkAndGet(
+        BigDecimal price = FeignResultUtils.checkAndGet(
                 servicePriceClient.calculatePrice(driveMile.intValue(), driveTime.intValue(), address, vehicleType));
         orderInfo.setPrice(price);
 

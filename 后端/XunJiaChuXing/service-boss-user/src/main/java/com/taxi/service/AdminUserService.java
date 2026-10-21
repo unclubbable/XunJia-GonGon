@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.taxi.mapper.bossUserMapper;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import com.taxi.config.RsaKeyConfig;
 import com.taxi.config.bossUser;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.TokenConstants;
@@ -14,6 +15,7 @@ import com.taxi.common.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AdminUserService {
@@ -23,8 +25,22 @@ public class AdminUserService {
     @Autowired
     private bossUserMapper bossUserMapper;
 
+    @Autowired
+    private RsaKeyConfig.RsaKeyHolder rsaKeyHolder;
+
 
     public Result login(AdminUser user){
+        if (user == null || !StringUtils.hasText(user.getUsername()) || !StringUtils.hasText(user.getPassword())) {
+            return Result.fail().message("账号或密码不能为空！");
+        }
+
+        String rawPassword;
+        try {
+            rawPassword = rsaKeyHolder.decrypt(user.getPassword());
+        } catch (Exception e) {
+            return Result.fail().message("密码解密失败，请刷新后重试！");
+        }
+
         QueryWrapper<bossUser> wrapper = new QueryWrapper<bossUser>()
                 .eq("username", user.getUsername());
         bossUser bossUser = bossUserMapper.selectOne(wrapper);
@@ -34,7 +50,7 @@ public class AdminUserService {
 
         String password = bossUser.getPassword();
 
-        if(!encoder.matches(user.getPassword(),password)){
+        if(!encoder.matches(rawPassword, password)){
             return Result.fail().message("账号或密码错误！");
         }
         String token = JwtUtils.generatorToken(bossUser.getUsername(), IdentityConstant.ADMIN_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);

@@ -11,10 +11,10 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 8.140.211.132:8848
+        server-addr: 192.168.220.128:8848
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://8.140.211.132:3303/service-ai?characterEncoding=utf-8&serverTimezone=GMT%2B8
+    url: jdbc:mysql://192.168.220.128:3303/service-ai?characterEncoding=utf-8&serverTimezone=GMT%2B8
     username: root
     password: CHANGE_ME
     hikari:

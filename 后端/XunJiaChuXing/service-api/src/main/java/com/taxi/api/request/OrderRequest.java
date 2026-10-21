@@ -6,6 +6,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -112,5 +113,5 @@ public class OrderRequest {
     /**
      * 价格
      */
-    private Double price;
+    private BigDecimal price;
 }

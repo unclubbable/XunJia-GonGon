@@ -37,6 +37,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @Controller
 @RequestMapping("/alipay")
@@ -232,7 +234,7 @@ public class ApiPayController {
             data.setOrderStatus(OrderConstants.SUCCESS_PAY);
             data.setPayOrderId(trade_no);
             orderInfoService.updateOrder(data);
-            serviceDriverUserClient.addMoneyByDriverId(data.getDriverId(), Double.valueOf(total_amount));
+            serviceDriverUserClient.addMoneyByDriverId(data.getDriverId(), new BigDecimal(total_amount));
 
             PushRequest pushRequest = new PushRequest();
             pushRequest.setUserId(data.getPassengerId());

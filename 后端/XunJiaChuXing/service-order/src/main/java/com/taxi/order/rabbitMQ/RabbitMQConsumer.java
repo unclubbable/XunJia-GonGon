@@ -36,7 +36,7 @@ public class RabbitMQConsumer {
             new ThreadPoolExecutor.AbortPolicy()
     );
 
-    @RabbitListener(queues = "travel-topic")
+    @RabbitListener(queues = RabbitMQConfig.TRAVEL_TOPIC)
     public void consumer(String messages, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         executorService.execute(() -> {
             try {
@@ -47,7 +47,7 @@ public class RabbitMQConsumer {
                 log.error("消费失败", e);
                 try {
                     channel.basicNack(deliveryTag, false, false);
-                    rabbitMQProducer.sendMessage("errOrderHandle-topic", messages);
+                    rabbitMQProducer.sendMessage(RabbitMQConfig.ERR_ORDER_HANDLE_TOPIC, messages);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -63,7 +63,7 @@ public class RabbitMQConsumer {
             dispatchService.disPatch(orderInfo);
         } catch (Exception e) {
             log.error("消费失败", e);
-            rabbitMQProducer.sendMessage("errOrderHandle-topic", msg);
+            rabbitMQProducer.sendMessage(RabbitMQConfig.ERR_ORDER_HANDLE_TOPIC, msg);
         }
     }
 }

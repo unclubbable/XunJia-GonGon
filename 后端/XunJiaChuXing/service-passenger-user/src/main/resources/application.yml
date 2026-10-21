@@ -11,14 +11,14 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 8.140.211.132:8848
+        server-addr: 192.168.220.128:8848
     sentinel:
       transport:
-        dashboard: 8.140.211.132:8090
+        dashboard: 192.168.220.128:8090
       http-method-specify: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://8.140.211.132:3303/service-passenger-user?characterEncoding=utf-8&serverTimezone=GMT%2B8
+    url: jdbc:mysql://192.168.220.128:3303/service-passenger-user?characterEncoding=utf-8&serverTimezone=GMT%2B8
     username: root
     password: CHANGE_ME
     hikari:
@@ -39,7 +39,7 @@ spring:
       # 心跳间隔（毫秒），定期发送 ping 保持连接活跃（HikariCP 3.4.0+ 支持）
       keepalive-time: 30000   # 每30秒一次心跳
   redis:
-    host: 8.140.211.132
+    host: 192.168.220.128
     port: 6379
     password: CHANGE_ME
     #用redis的第 0个数据库

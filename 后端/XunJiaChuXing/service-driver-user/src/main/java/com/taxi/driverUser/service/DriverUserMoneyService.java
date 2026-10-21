@@ -4,33 +4,34 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.taxi.api.dto.DriverUserMoney;
 import com.taxi.api.result.Result;
 import com.taxi.driverUser.mapper.DriverUserMoneyMapper;
-import org.bouncycastle.asn1.dvcs.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Service
 public class DriverUserMoneyService {
+
+    /** 司机分成比例 80%，平台抽成 = 总额 − 司机收入，保证加总一致 */
+    private static final BigDecimal DRIVER_RATIO = new BigDecimal("0.8");
+    private static final int MONEY_SCALE = 2;
+
     @Autowired
     private DriverUserMoneyMapper driverUserMoneyMapper;
 
     public Result getMoneyByDriverIdYearMonth(Long driverId, Integer recentlyMonth) {
-        //获取用户全部订单金额
         QueryWrapper driverUserMoneyQueryWrapper = new QueryWrapper<DriverUserMoney>()
-                .eq("driver_id",driverId);
+                .eq("driver_id", driverId);
         List list = driverUserMoneyMapper.selectList(driverUserMoneyQueryWrapper);
-        // 当前时间戳
         long now = getTimestamp(0);
-        // 前几个月时间戳
         long oneMonthAgo = getTimestamp(recentlyMonth);
-        //筛选时间段
         List<DriverUserMoney> collect = list.stream().filter(new Predicate<DriverUserMoney>() {
             @Override
             public boolean test(DriverUserMoney driverUserMoney) {
@@ -48,6 +49,7 @@ public class DriverUserMoneyService {
 
         return Result.ok(collect);
     }
+
     /**
      * 根据 年、月 获取对应月份1日 00:00:00 的时间戳（毫秒）
      */
@@ -57,6 +59,7 @@ public class DriverUserMoneyService {
                 .toInstant()
                 .toEpochMilli();
     }
+
     /**
      * 获取指定月数前的时间戳（毫秒）
      * @param monthsAgo 几个月前，0=当前时间
@@ -68,7 +71,7 @@ public class DriverUserMoneyService {
                 .toEpochMilli();
     }
 
-    public Result addMoneyByDriverId(Long driverId, Double money) {
+    public Result addMoneyByDriverId(Long driverId, BigDecimal money) {
         if (driverId == null || money == null) {
             return Result.fail().message("司机ID和金额不能为空");
         }
@@ -79,55 +82,55 @@ public class DriverUserMoneyService {
      * 退款回退司机当月收入（与入账同一 80/20 比例）。
      * amount 传正数表示扣减。
      */
-    public Result deductMoneyByDriverId(Long driverId, Double amount) {
-        if (driverId == null || amount == null || amount <= 0) {
+    public Result deductMoneyByDriverId(Long driverId, BigDecimal amount) {
+        if (driverId == null || amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             return Result.fail().message("扣减金额必须大于0");
         }
-        return adjustMoneyByDriverId(driverId, -amount);
+        return adjustMoneyByDriverId(driverId, amount.negate());
     }
 
-    private Result adjustMoneyByDriverId(Long driverId, Double money) {
+    private Result adjustMoneyByDriverId(Long driverId, BigDecimal money) {
+        BigDecimal orderAmount = money.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+        BigDecimal driverIncome = driverShare(orderAmount);
+        BigDecimal platformCommission = platformShare(orderAmount, driverIncome);
+
         QueryWrapper<DriverUserMoney> driverUserMoneyQueryWrapper = new QueryWrapper<DriverUserMoney>()
                 .eq("driver_id", driverId)
                 .eq("year", LocalDate.now().getYear())
                 .eq("month", LocalDate.now().getMonthValue());
         List<DriverUserMoney> list = driverUserMoneyMapper.selectList(driverUserMoneyQueryWrapper);
         if (list == null || list.isEmpty()) {
-            if (money < 0) {
-                // 当月无账本时仍落一笔负向记录，保证可追溯
-                DriverUserMoney driverUserMoney = new DriverUserMoney();
-                driverUserMoney.setDriverId(driverId);
-                driverUserMoney.setYear(Long.valueOf(LocalDate.now().getYear()));
-                driverUserMoney.setMonth(Long.valueOf(LocalDate.now().getMonthValue()));
-                driverUserMoney.setTotalOrderAmount(money);
-                driverUserMoney.setDriverIncome(money * 0.8);
-                driverUserMoney.setPlatformCommission(money - money * 0.8);
-                driverUserMoney.setStatus(0L);
-                driverUserMoneyMapper.insert(driverUserMoney);
-                return Result.ok();
-            }
             DriverUserMoney driverUserMoney = new DriverUserMoney();
             driverUserMoney.setDriverId(driverId);
             driverUserMoney.setYear(Long.valueOf(LocalDate.now().getYear()));
             driverUserMoney.setMonth(Long.valueOf(LocalDate.now().getMonthValue()));
-            driverUserMoney.setTotalOrderAmount(money);
-            driverUserMoney.setDriverIncome(money * 0.8);
-            driverUserMoney.setPlatformCommission(money - money * 0.8);
+            driverUserMoney.setTotalOrderAmount(orderAmount);
+            driverUserMoney.setDriverIncome(driverIncome);
+            driverUserMoney.setPlatformCommission(platformCommission);
             driverUserMoney.setStatus(0L);
             driverUserMoneyMapper.insert(driverUserMoney);
         } else {
             DriverUserMoney driverUserMoney = list.get(0);
-            driverUserMoney.setTotalOrderAmount(safeAdd(driverUserMoney.getTotalOrderAmount(), money));
-            driverUserMoney.setDriverIncome(safeAdd(driverUserMoney.getDriverIncome(), money * 0.8));
-            driverUserMoney.setPlatformCommission(safeAdd(driverUserMoney.getPlatformCommission(), money - money * 0.8));
+            driverUserMoney.setTotalOrderAmount(safeAdd(driverUserMoney.getTotalOrderAmount(), orderAmount));
+            driverUserMoney.setDriverIncome(safeAdd(driverUserMoney.getDriverIncome(), driverIncome));
+            driverUserMoney.setPlatformCommission(safeAdd(driverUserMoney.getPlatformCommission(), platformCommission));
             driverUserMoneyMapper.updateById(driverUserMoney);
         }
         return Result.ok();
     }
 
-    private double safeAdd(Double base, double delta) {
-        double b = base == null ? 0D : base;
-        return b + delta;
+    private BigDecimal driverShare(BigDecimal orderAmount) {
+        return orderAmount.multiply(DRIVER_RATIO).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /** 平台抽成 = 总额 − 司机收入，避免 0.8 / 0.2 两边各自舍入导致对不上 */
+    private BigDecimal platformShare(BigDecimal orderAmount, BigDecimal driverIncome) {
+        return orderAmount.subtract(driverIncome);
+    }
+
+    private BigDecimal safeAdd(BigDecimal base, BigDecimal delta) {
+        BigDecimal b = base == null ? BigDecimal.ZERO : base;
+        return b.add(delta).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
     }
 
     public Result getMoneyList() {

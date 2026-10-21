@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
+
 @Data
 public class PriceRule {
     /**
@@ -26,7 +29,7 @@ public class PriceRule {
     /**
      * 起步价
      */
-    private Double startFare;
+    private BigDecimal startFare;
 
     /**
      * 起步里程
@@ -36,12 +39,12 @@ public class PriceRule {
     /**
      * 单位距离价格（千米）
      */
-    private Double unitPricePerMile;
+    private BigDecimal unitPricePerMile;
 
     /**
      * 单位时长价格（分钟）
      */
-    private Double unitPricePerMinute;
+    private BigDecimal unitPricePerMinute;
 
     /**
      * 版本，默认1，修改往上增。

@@ -149,14 +149,10 @@ public class PriceRuleService {
         }
 
         PriceRule lasterPriceRule = priceRules.get(0);
-        Double unitPricePerMile = lasterPriceRule.getUnitPricePerMile();
-        Double unitPricePerMinute = lasterPriceRule.getUnitPricePerMinute();
-        Double startFare = lasterPriceRule.getStartFare();
-        Integer startMile = lasterPriceRule.getStartMile();
-        if (unitPricePerMile.doubleValue() == priceRule.getUnitPricePerMile().doubleValue()
-                && unitPricePerMinute.doubleValue() == priceRule.getUnitPricePerMinute().doubleValue()
-                && startFare.doubleValue() == priceRule.getStartFare().doubleValue()
-                && startMile.doubleValue() == priceRule.getStartMile().doubleValue()) {
+        if (lasterPriceRule.getUnitPricePerMile().compareTo(priceRule.getUnitPricePerMile()) == 0
+                && lasterPriceRule.getUnitPricePerMinute().compareTo(priceRule.getUnitPricePerMinute()) == 0
+                && lasterPriceRule.getStartFare().compareTo(priceRule.getStartFare()) == 0
+                && lasterPriceRule.getStartMile().intValue() == priceRule.getStartMile().intValue()) {
             return Result.fail().message("计价规则未变更,请勿重复提交");
         }
 

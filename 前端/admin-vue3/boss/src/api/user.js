@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+/** 获取登录 RSA 公钥（PEM） */
+export function getLoginPublicKey() {
+  return request({
+    url: '/boss-user/login/public-key',
+    method: 'get'
+  })
+}
+
 export function login(data) {
   return request({
     url: '/boss-user/login',

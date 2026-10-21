@@ -354,7 +354,7 @@ public class TicketService {
 
         BigDecimal orderPrice = order.getPrice() == null
                 ? BigDecimal.ZERO
-                : BigDecimal.valueOf(order.getPrice()).setScale(2, RoundingMode.HALF_UP);
+                : order.getPrice().setScale(2, RoundingMode.HALF_UP);
         BigDecimal amount = request.getRefundAmount().setScale(2, RoundingMode.HALF_UP);
         if (amount.compareTo(BigDecimal.ZERO) <= 0 || amount.compareTo(orderPrice) > 0) {
             throw new BusinessException(ResultCodeEnum.TICKET_REFUND_AMOUNT_ERROR);
@@ -931,8 +931,7 @@ public class TicketService {
             refund.setDriverSettled(1);
             return;
         }
-        double amount = refund.getRefundAmount().doubleValue();
-        Result settle = serviceDriverUserClient.deductMoneyByDriverId(refund.getDriverId(), amount);
+        Result settle = serviceDriverUserClient.deductMoneyByDriverId(refund.getDriverId(), refund.getRefundAmount());
         if (settle == null || !settle.isOk()) {
             String msg = settle == null ? "司机服务无响应" : settle.getMessage();
             throw new BusinessException(ResultCodeEnum.TICKET_EXECUTE_CHANGE_ERROR,

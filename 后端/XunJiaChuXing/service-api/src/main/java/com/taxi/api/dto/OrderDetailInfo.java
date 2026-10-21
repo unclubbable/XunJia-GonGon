@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -258,7 +259,7 @@ public class OrderDetailInfo implements Serializable {
     /**
      * 价格
      */
-    private Double price;
+    private BigDecimal price;
 
     /**
      * 退款状态：0无 1退款中 2部分退 3全额退

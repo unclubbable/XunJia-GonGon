@@ -162,10 +162,10 @@ const onMonthChange = (e) => {
   fetchData()
 }
 
-// 格式化金额（分转元）
+// 格式化金额（后端统一为元）
 const formatMoney = (value) => {
   if (value === undefined || value === null) return '¥0.00'
-  return `¥${(value / 100).toFixed(2)}`
+  return `¥${Number(value).toFixed(2)}`
 }
 
 onMounted(() => {

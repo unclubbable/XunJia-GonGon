@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class DriverUserMoney implements Serializable {
@@ -29,15 +30,15 @@ public class DriverUserMoney implements Serializable {
     /**
      * 订单总金额（乘客实付）
      */
-    private Double TotalOrderAmount;
+    private BigDecimal TotalOrderAmount;
     /**
      * 司机实际收入
      */
-    private Double driverIncome;
+    private BigDecimal driverIncome;
     /**
      * 平台抽成
      */
-    private Double platformCommission;
+    private BigDecimal platformCommission;
     /**
      * 工资是否发放
      */
