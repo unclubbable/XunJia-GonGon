@@ -187,10 +187,11 @@
 
 | 功能模块 | 效果展示 | 功能模块 | 效果展示 | 功能模块 | 效果展示 |
 | ---- | :----: | ---- | :----: | ---- | :----: |
-| 首页（出车听单） | <img src="./assets/android/driver/shouye.jpg" width="150"> | 实时地图 | <img src="./assets/android/driver/map.jpg" width="150"> | 3D 地图 | <img src="./assets/android/driver/3Dmap.jpg" width="150"> |
-| 全部订单 | <img src="./assets/android/driver/order.jpg" width="150"> | 钱包收入 | <img src="./assets/android/driver/qianbao.jpg" width="150"> | 个人主页 | <img src="./assets/android/driver/zhuye.jpg" width="150"> |
-| 个人信息 | <img src="./assets/android/driver/zhuye-gerenxinxi.jpg" width="150"> | 绑定车辆 | <img src="./assets/android/driver/zhuye-cheliangxinxi.jpg" width="150"> | 我的工单 | <img src="./assets/android/driver/gondan.jpg" width="150"> |
-| 新建工单 | <img src="./assets/android/driver/xinjiangondan.jpg" width="150"> | 意见反馈 | <img src="./assets/android/driver/zhuye-kaifazheyijian.jpg" width="150"> | 平台协议 | <img src="./assets/android/driver/zhuye-xieyi.jpg" width="150"> |
+| 首页（出车听单） | <img src="./assets/android/driver/shouye.jpg" width="150"> | 首页（连接异常） | <img src="./assets/android/driver/websocket.jpg" width="150"> | 全部订单 | <img src="./assets/android/driver/order.jpg" width="150"> |
+| 钱包收入 | <img src="./assets/android/driver/qianbao.jpg" width="150"> | 个人主页 | <img src="./assets/android/driver/zhuye.jpg" width="150"> | 个人信息 | <img src="./assets/android/driver/zhuye-gerenxinxi.jpg" width="150"> |
+| 绑定车辆 | <img src="./assets/android/driver/zhuye-cheliangxinxi.jpg" width="150"> | 我的工单 | <img src="./assets/android/driver/gondan.jpg" width="150"> | 新建工单 | <img src="./assets/android/driver/xinjiangondan.jpg" width="150"> |
+| 意见反馈 | <img src="./assets/android/driver/zhuye-kaifazheyijian.jpg" width="150"> | 平台协议 | <img src="./assets/android/driver/zhuye-xieyi.jpg" width="150"> | 实时地图 | <img src="./assets/android/driver/map.jpg" width="150"> |
+| 3D 地图 | <img src="./assets/android/driver/3Dmap.jpg" width="150"> | | | | |
 
 **司机端能力摘要**
 
@@ -203,10 +204,10 @@
 
 | 功能模块 | 效果展示 | 功能模块 | 效果展示 | 功能模块 | 效果展示 |
 | ---- | :----: | ---- | :----: | ---- | :----: |
-| 首页（地图叫车） | <img src="./assets/android/passenger/shouye.jpg" width="150"> | 全部订单 | <img src="./assets/android/passenger/order.jpg" width="150"> | 个人主页 | <img src="./assets/android/passenger/zhuye.jpg" width="150"> |
-| 个人信息 | <img src="./assets/android/passenger/zhuye-gerenxinxi.jpg" width="150"> | 支付设置 | <img src="./assets/android/passenger/zhuye-zhifushezhi.jpg" width="150"> | 工单首页 | <img src="./assets/android/passenger/gondanshouye.jpg" width="150"> |
-| 选择工单类型 | <img src="./assets/android/passenger/xuanzegondan.jpg" width="150"> | 新建工单 | <img src="./assets/android/passenger/xinjiangondan.jpg" width="150"> | 意见反馈 | <img src="./assets/android/passenger/zhuye-kaifazheyijian.jpg" width="150"> |
-| 平台协议 | <img src="./assets/android/passenger/zhuye-xieyi.jpg" width="150"> |  |  |  |  |
+| 首页（地图叫车） | <img src="./assets/android/passenger/shouye.jpg" width="150"> | 首页（连接异常） | <img src="./assets/android/passenger/websocket.jpg" width="150"> | 全部订单 | <img src="./assets/android/passenger/order.jpg" width="150"> |
+| 个人主页 | <img src="./assets/android/passenger/zhuye.jpg" width="150"> | 个人信息 | <img src="./assets/android/passenger/zhuye-gerenxinxi.jpg" width="150"> | 支付设置 | <img src="./assets/android/passenger/zhuye-zhifushezhi.jpg" width="150"> |
+| 工单首页 | <img src="./assets/android/passenger/gondanshouye.jpg" width="150"> | 选择工单类型 | <img src="./assets/android/passenger/xuanzegondan.jpg" width="150"> | 新建工单 | <img src="./assets/android/passenger/xinjiangondan.jpg" width="150"> |
+| 意见反馈 | <img src="./assets/android/passenger/zhuye-kaifazheyijian.jpg" width="150"> | 平台协议 | <img src="./assets/android/passenger/zhuye-xieyi.jpg" width="150"> |  |  | 
 
 **乘客端能力摘要**
 
@@ -223,6 +224,7 @@
 | 功能模块 | 效果展示 |
 | ---- | ---- |
 | 管理端首页 | <img src="./assets/GuanLiDuan/shouye.png" width="600" alt="管理端首页"> |
+| 管理端（连接异常） | <img src="./assets/GuanLiDuan/websocket.png" width="600" alt="管理端连接异常"> |
 | 司机信息 | <img src="./assets/GuanLiDuan/sijixinxi.png" width="600" alt="司机信息"> |
 | 司机工作状态 | <img src="./assets/GuanLiDuan/gonzuozhuangtai.png" width="600" alt="司机工作状态"> |
 | 车辆信息 | <img src="./assets/GuanLiDuan/car.png" width="600" alt="车辆信息"> |
@@ -257,6 +259,8 @@
 | 功能模块 | 效果展示 |
 | ---- | ---- |
 | 工单列表 | <img src="./assets/GuanLiDuan/gondanlist.png" width="600" alt="工单列表"> |
+| 工单推送 | <img src="./assets/GuanLiDuan/tuison.png" width="600" alt="工单推送"> |
+| 工单撤销 | <img src="./assets/GuanLiDuan/chexiao.png" width="600" alt="工单撤销"> |
 | AI 正在生成 | <img src="./assets/GuanLiDuan/gondanliebiao-AIzhengzaishengcheng.png" width="600" alt="AI正在生成"> |
 | AI 生成完成 | <img src="./assets/GuanLiDuan/gondanliebiao-AIshengchengwanbi.png" width="600" alt="AI生成完成"> |
 | AI 协查面板 | <img src="./assets/GuanLiDuan/AIxiecha.png" width="600" alt="AI协查"> |
