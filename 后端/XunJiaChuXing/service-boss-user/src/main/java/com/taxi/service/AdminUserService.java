@@ -1,26 +1,36 @@
 package com.taxi.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.taxi.mapper.bossUserMapper;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import com.taxi.config.RsaKeyConfig;
-import com.taxi.config.bossUser;
-import com.taxi.common.constant.IdentityConstant;
-import com.taxi.common.constant.TokenConstants;
+import com.taxi.api.Client.ServiceSsePushClient;
 import com.taxi.api.request.AdminUser;
+import com.taxi.api.request.KickRequest;
 import com.taxi.api.response.AdminTokenResponse;
 import com.taxi.api.result.Result;
+import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.constant.IdentityConstant;
+import com.taxi.common.constant.TokenConstants;
 import com.taxi.common.util.JwtUtils;
+import com.taxi.common.util.RedisPrefixUtils;
+import com.taxi.config.RsaKeyConfig;
+import com.taxi.config.bossUser;
+import com.taxi.mapper.bossUserMapper;
+import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 @Service
 public class AdminUserService {
-    // 初始化加密器
+
     private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private static final long ACCESS_TOKEN_DAYS = 30;
 
     @Autowired
     private bossUserMapper bossUserMapper;
@@ -28,8 +38,13 @@ public class AdminUserService {
     @Autowired
     private RsaKeyConfig.RsaKeyHolder rsaKeyHolder;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
-    public Result login(AdminUser user){
+    @Autowired
+    private ServiceSsePushClient serviceSsePushClient;
+
+    public Result login(AdminUser user) {
         if (user == null || !StringUtils.hasText(user.getUsername()) || !StringUtils.hasText(user.getPassword())) {
             return Result.fail().message("账号或密码不能为空！");
         }
@@ -43,41 +58,101 @@ public class AdminUserService {
 
         QueryWrapper<bossUser> wrapper = new QueryWrapper<bossUser>()
                 .eq("username", user.getUsername());
-        bossUser bossUser = bossUserMapper.selectOne(wrapper);
-        if (bossUser == null){
+        bossUser boss = bossUserMapper.selectOne(wrapper);
+        if (boss == null) {
             return Result.fail().message("用户不存在！");
         }
+        if (boss.getId() == null) {
+            return Result.fail().message("账号数据异常：缺少用户ID");
+        }
 
-        String password = bossUser.getPassword();
-
-        if(!encoder.matches(rawPassword, password)){
+        if (!encoder.matches(rawPassword, boss.getPassword())) {
             return Result.fail().message("账号或密码错误！");
         }
-        String token = JwtUtils.generatorToken(bossUser.getUsername(), IdentityConstant.ADMIN_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);
-        AdminTokenResponse adminTokenResponse = new AdminTokenResponse();
-        adminTokenResponse.setToken(token);
-        return Result.ok(adminTokenResponse);
+
+        String username = boss.getUsername();
+        Integer userId = boss.getId();
+
+        // 方案 A：先覆盖 Redis（旧 HTTP 立刻失效），再踢旧 WS
+        String token = JwtUtils.generatorToken(username, IdentityConstant.ADMIN_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);
+        String tokenKey = RedisPrefixUtils.generatorTokenKey(username, IdentityConstant.ADMIN_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);
+        stringRedisTemplate.opsForValue().set(tokenKey, token, ACCESS_TOKEN_DAYS, TimeUnit.DAYS);
+
+        String uidKey = RedisPrefixUtils.generatorAdminUidKey(username);
+        stringRedisTemplate.opsForValue().set(uidKey, String.valueOf(userId), ACCESS_TOKEN_DAYS, TimeUnit.DAYS);
+
+        kickOldWebSocket(userId.longValue());
+
+        AdminTokenResponse resp = new AdminTokenResponse();
+        resp.setToken(token);
+        resp.setUserId(userId);
+        resp.setUsername(username);
+        log.info("管理端登录成功 username={} userId={}", username, userId);
+        return Result.ok(resp);
     }
 
-    public Result getInfo(String token){
-        String username = JwtUtils.parseToken(token).getPhone();
+    public Result getInfo(String token) {
+        TokenResult tokenResult = JwtUtils.checkToken(token);
+        if (tokenResult == null || !StringUtils.hasText(tokenResult.getPhone())) {
+            return Result.fail().message("token无效");
+        }
+        String username = tokenResult.getPhone();
+        bossUser boss = bossUserMapper.selectOne(new QueryWrapper<bossUser>().eq("username", username));
+
         JSONObject userInfo = new JSONObject();
         JSONArray roles = new JSONArray();
         roles.add(username);
         userInfo.put("roles", roles);
         userInfo.put("introduction", "I am a super administrator");
         userInfo.put("avatar", "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif");
-        userInfo.put("name", "Super Admin");
+        userInfo.put("name", boss != null && StringUtils.hasText(boss.getUsername()) ? boss.getUsername() : "Super Admin");
+        userInfo.put("username", username);
+        if (boss != null && boss.getId() != null) {
+            userInfo.put("userId", boss.getId());
+        }
         return Result.ok(userInfo);
     }
 
-
-    public static void main(String[] args) {
-        String raw = "123456";
-        String encoded = encoder.encode(raw);
-        System.out.println("加密后：" + encoded);
-        System.out.println("验证结果：" + encoder.matches(raw, encoded)); // true
+    public Result logout(String token) {
+        if (!StringUtils.hasText(token)) {
+            return Result.ok();
+        }
+        TokenResult tokenResult = JwtUtils.checkToken(token.trim());
+        if (tokenResult == null || !StringUtils.hasText(tokenResult.getPhone())) {
+            return Result.ok();
+        }
+        String username = tokenResult.getPhone();
+        String tokenKey = RedisPrefixUtils.generatorTokenKey(username, IdentityConstant.ADMIN_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);
+        String current = stringRedisTemplate.opsForValue().get(tokenKey);
+        if (StringUtils.hasText(current) && current.trim().equals(token.trim())) {
+            stringRedisTemplate.delete(tokenKey);
+        }
+        String uidStr = stringRedisTemplate.opsForValue().get(RedisPrefixUtils.generatorAdminUidKey(username));
+        if (StringUtils.hasText(uidStr)) {
+            try {
+                KickRequest kick = new KickRequest();
+                kick.setUserId(Long.parseLong(uidStr.trim()));
+                kick.setIdentity(IdentityConstant.ADMIN_IDENTITY);
+                kick.setSendForceLogout(false);
+                serviceSsePushClient.kick(kick);
+            } catch (Exception e) {
+                log.warn("登出踢 WS 失败 username={}", username, e);
+            }
+        }
+        return Result.ok();
     }
 
-
+    private void kickOldWebSocket(Long userId) {
+        try {
+            KickRequest kick = new KickRequest();
+            kick.setUserId(userId);
+            kick.setIdentity(IdentityConstant.ADMIN_IDENTITY);
+            kick.setSendForceLogout(true);
+            String r = serviceSsePushClient.kick(kick);
+            log.info("登录踢旧 WS userId={} result={}", userId, r);
+        } catch (Exception e) {
+            // 踢失败不阻断登录（例如 websocket 未启动）
+            log.warn("登录踢旧 WS 失败 userId={}（可忽略若服务未启动）", userId, e);
+        }
+    }
 }

@@ -174,6 +174,15 @@
                 </el-descriptions>
               </section>
 
+              <el-alert
+                v-if="detail.ticket.status === 'CANCELLED'"
+                type="warning"
+                :closable="false"
+                show-icon
+                title="用户已撤销该工单，无需继续处理"
+                class="cancel-alert"
+              />
+
               <section v-if="canProcess" class="panel panel-actions">
                 <h3 class="panel-title">处理操作</h3>
                 <el-input
@@ -402,7 +411,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
@@ -429,6 +438,8 @@ import {
   formatCategory,
   formatTicketStatus
 } from '@/utils/ticketDict'
+import { getUserId, getUsername } from '@/utils/auth'
+import { onWs } from '@/utils/wsHub'
 
 const ACTION_LABELS = {
   ACCEPT: '受理',
@@ -503,8 +514,8 @@ const showExecuteAdvice = computed(() => {
 })
 
 const operator = () => ({
-  assigneeId: 1,
-  assigneeName: 'admin'
+  assigneeId: getUserId() || 1,
+  assigneeName: getUsername() || 'admin'
 })
 
 const actionLabel = (act) => ACTION_LABELS[act] || act
@@ -612,6 +623,10 @@ const handleAccept = async () => {
 }
 
 const handleReply = async () => {
+  if (detail.value?.ticket?.status === 'CANCELLED') {
+    ElMessage.warning('用户已撤销该工单，无法回复')
+    return
+  }
   const content = replyContent.value.trim()
   if (!content) {
     ElMessage.warning('请输入回复内容')
@@ -844,9 +859,79 @@ const formatDateTime = (dateStr) => {
   return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`
 }
 
+const applyTicketPush = (payload) => {
+  if (!payload) return
+
+  // 新工单：直接刷新列表
+  if (payload.type === 'TICKET_CREATED') {
+    fetchList()
+    return
+  }
+
+  const openId = detail.value?.ticket?.id
+  const isCurrent = openId && Number(payload.ticketId) === Number(openId)
+
+  // 用户撤销：当前抽屉立刻收操作区 + 强提示
+  if (payload.status === 'CANCELLED') {
+    if (isCurrent && detail.value?.ticket) {
+      detail.value.ticket = { ...detail.value.ticket, status: 'CANCELLED' }
+      ElMessage.warning({
+        message: `用户已撤销工单 ${payload.ticketNo || payload.ticketId}，请停止回复`,
+        duration: 5000
+      })
+      refreshDetail()
+    }
+    fetchList()
+    return
+  }
+
+  if (!isCurrent) {
+    // 未打开对应详情时也刷新列表，避免漏看状态变化
+    fetchList()
+    return
+  }
+
+  if (payload.status && detail.value?.ticket) {
+    detail.value.ticket = { ...detail.value.ticket, status: payload.status }
+  }
+
+  if (payload.messageId != null) {
+    const list = detail.value.messages || []
+    const exists = list.some((m) => Number(m.id) === Number(payload.messageId))
+    if (!exists) {
+      detail.value.messages = [
+        ...list,
+        {
+          id: payload.messageId,
+          ticketId: payload.ticketId,
+          senderType: payload.senderType,
+          senderName: payload.senderName,
+          content: payload.content,
+          msgType: payload.msgType,
+          gmtCreate: payload.gmtCreate || new Date().toISOString().slice(0, 19).replace('T', ' ')
+        }
+      ]
+    }
+  }
+
+  if (payload.type === 'TICKET_STATUS') {
+    refreshDetail()
+  } else {
+    fetchList()
+  }
+}
+
+let offTicket = null
+
 onMounted(async () => {
+  offTicket = onWs('ticket', applyTicketPush)
   await fetchList()
   await openDetailFromQuery()
+})
+
+onUnmounted(() => {
+  if (offTicket) offTicket()
+  offTicket = null
 })
 
 watch(
@@ -937,6 +1022,9 @@ watch(
 }
 .panel-actions {
   background: #fbfcfd;
+}
+.cancel-alert {
+  margin-bottom: 12px;
 }
 
 .payload-pre {

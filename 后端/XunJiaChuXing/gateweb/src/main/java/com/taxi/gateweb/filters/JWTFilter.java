@@ -35,71 +35,77 @@ import java.util.List;
 public class JWTFilter implements GlobalFilter, Ordered {
     private static final String DRIVER_PREFIX = "/driver-user";
     private static final String PASSENGER_PREFIX = "/passenger-user";
+    private static final String BOSS_PREFIX = "/boss-user";
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private InPath inPath;
-    private final AntPathMatcher antPathMatcher = new AntPathMatcher();     //路径匹配器
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String requestPath = request.getURI().getPath();
-        log.debug("访问路径："+requestPath);
-        if (isExclude(requestPath)){
+        log.debug("访问路径：" + requestPath);
+        if (isExclude(requestPath)) {
             log.debug("不需要拦截--放行");
             return chain.filter(exchange);
         }
 
-        // 判断结果
         boolean result = true;
         ResultCodeEnum errorCode = ResultCodeEnum.TOKEN_ERROR;
 
-        List<String> headers = request.getHeaders().get("Authorization");
-        String token = null;
-        if (!CollUtil.isEmpty( headers)){
-            token = headers.get(0);
-        }
-        // 解析token
+        String token = resolveToken(request);
         TokenResult tokenResult = JwtUtils.checkToken(token);
 
-        if (tokenResult == null){
+        if (tokenResult == null) {
             result = false;
-        }else{
-            // 拼接key
+        } else {
             String phone = tokenResult.getPhone();
             String identity = tokenResult.getIdentity();
 
-            String tokenKey = RedisPrefixUtils.generatorTokenKey(phone,identity, TokenConstants.ACCESS_TOKEN_TYPE);
-            // 从redis中取出token
+            String tokenKey = RedisPrefixUtils.generatorTokenKey(phone, identity, TokenConstants.ACCESS_TOKEN_TYPE);
             String tokenRedis = stringRedisTemplate.opsForValue().get(tokenKey);
-            if ((StringUtils.isBlank(tokenRedis))  || (!token.trim().equals(tokenRedis.trim()))){
+            if ((StringUtils.isBlank(tokenRedis)) || (!token.trim().equals(tokenRedis.trim()))) {
                 result = false;
+                // JWT 仍能解析但 Redis 已是新 token → 多半被挤下线
+                if (StringUtils.isNotBlank(tokenRedis)) {
+                    errorCode = ResultCodeEnum.TOKEN_REPLACED;
+                }
             }
-            // 按根路径校验身份，避免司机/乘客 token 互相访问
             if (result && !matchIdentity(requestPath, identity)) {
                 log.error("身份与访问路径不匹配，path={} identity={}", requestPath, identity);
                 result = false;
                 errorCode = ResultCodeEnum.TOKEN_IDENTITY_MISMATCH;
             }
         }
-        // 返回结果
-        if (!result){
+
+        if (!result) {
             log.error("token验证失败, code={}", errorCode.getCode());
             return unauthorized(exchange.getResponse(), errorCode);
         }
 
         ServerWebExchange build = exchange.mutate().request(
-                builder -> builder
-                        .header("tokenResult", JSONUtil.toJsonStr(tokenResult))
+                builder -> builder.header("tokenResult", JSONUtil.toJsonStr(tokenResult))
         ).build();
-        log.debug("tokenResult:"+JSONUtil.toJsonStr(tokenResult));
+        log.debug("tokenResult:" + JSONUtil.toJsonStr(tokenResult));
         return chain.filter(build);
     }
 
-    /**
-     * 返回统一 Result JSON 格式的 401 响应
-     */
+    /** 兼容 Authorization 与管理端历史头 X-Token */
+    private String resolveToken(ServerHttpRequest request) {
+        List<String> headers = request.getHeaders().get("Authorization");
+        if (!CollUtil.isEmpty(headers) && StringUtils.isNotBlank(headers.get(0))) {
+            return headers.get(0);
+        }
+        List<String> xToken = request.getHeaders().get("X-Token");
+        if (!CollUtil.isEmpty(xToken) && StringUtils.isNotBlank(xToken.get(0))) {
+            return xToken.get(0);
+        }
+        return null;
+    }
+
     private Mono<Void> unauthorized(ServerHttpResponse response, ResultCodeEnum errorCode) {
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -114,22 +120,22 @@ public class JWTFilter implements GlobalFilter, Ordered {
             return false;
         }
         for (String pathPattern : inPath.getInpath()) {
-            if(antPathMatcher.match(pathPattern, antPath)){
+            if (antPathMatcher.match(pathPattern, antPath)) {
                 return true;
             }
         }
         return false;
     }
 
-    /**
-     * 司机根路径只允许司机身份，乘客根路径只允许乘客身份
-     */
     private boolean matchIdentity(String path, String identity) {
         if (path.startsWith(DRIVER_PREFIX)) {
             return IdentityConstant.DRIVER_IDENTITY.equals(identity);
         }
         if (path.startsWith(PASSENGER_PREFIX)) {
             return IdentityConstant.PASSENGER_IDENTITY.equals(identity);
+        }
+        if (path.startsWith(BOSS_PREFIX)) {
+            return IdentityConstant.ADMIN_IDENTITY.equals(identity);
         }
         return true;
     }

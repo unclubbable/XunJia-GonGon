@@ -27,6 +27,7 @@ import com.taxi.api.result.Result;
 import com.taxi.api.result.ResultCodeEnum;
 import com.taxi.api.util.FeignResultUtils;
 import com.taxi.api.util.OrderValidator;
+import com.taxi.api.util.WsMessageUtils;
 import com.taxi.common.ThreadLoad.TokenResult;
 import com.taxi.order.service.IOrderInfoService;
 import com.taxi.order.service.OrderTripService;
@@ -228,7 +229,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         PushRequest pushRequest = new PushRequest();
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-        pushRequest.setContent(passengerContent.toString());
+        pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
         serviceSsePushClient.push(pushRequest);
         return Result.ok(orderInfo);
     }
@@ -256,7 +257,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         PushRequest pushRequest = new PushRequest();
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-        pushRequest.setContent(passengerContent.toString());
+        pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
         serviceSsePushClient.push(pushRequest);
 
 
@@ -288,8 +289,8 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         PushRequest pushRequest = new PushRequest();
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-        pushRequest.setContent(passengerContent.toString());
-        log.error("通知乘客的信息:"+JSONUtil.toJsonStr(pushRequest));
+        pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
+        log.info("通知乘客上车信息: {}", JSONUtil.toJsonStr(pushRequest));
         serviceSsePushClient.push(pushRequest);
 
 
@@ -357,7 +358,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         PushRequest pushRequest = new PushRequest();
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-        pushRequest.setContent(passengerContent.toString());
+        pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
         serviceSsePushClient.push(pushRequest);
 
 
@@ -456,7 +457,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         Result<String> result = new Result<String>();
         result.setCode(OrderConstants.RESULT_CODE_ORDER_CANCEL)
                 .setMessage("订单取消成功");
-        pushRequest.setContent(JSONUtil.toJsonStr(result));
+        pushRequest.setContent(WsMessageUtils.orderStatus(result));
         serviceSsePushClient.push(pushRequest);
         pushRequest.setUserId(orderInfo.getDriverId());
         pushRequest.setIdentity(IdentityConstant.DRIVER_IDENTITY);
@@ -497,7 +498,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         PushRequest pushRequest = new PushRequest();
         pushRequest.setUserId(passengerId);
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-        pushRequest.setContent(passengerContent.toString());
+        pushRequest.setContent(WsMessageUtils.payInfo(passengerContent));
         serviceSsePushClient.push(pushRequest);
         //推送订单消息给司机
 

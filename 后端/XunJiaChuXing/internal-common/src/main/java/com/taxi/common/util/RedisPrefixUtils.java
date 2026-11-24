@@ -25,4 +25,12 @@ public class RedisPrefixUtils {
     public static String generatorTokenKey(String phone,String identity,String tokenType){
         return TOKEN_PREFIX+phone+"-"+identity+"-"+tokenType;
     }
+
+    /**
+     * 管理端 username → 数字 userId 映射（WS 建连校验用，登录时写入）。
+     * 例：admin-uid-admin → "1"
+     */
+    public static String generatorAdminUidKey(String username) {
+        return "admin-uid-" + username;
+    }
 }

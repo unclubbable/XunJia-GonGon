@@ -21,6 +21,7 @@ import com.taxi.api.response.AlipayRefundResponse;
 import com.taxi.api.result.Result;
 import com.taxi.api.result.ResultCodeEnum;
 import com.taxi.api.util.FeignResultUtils;
+import com.taxi.api.util.WsMessageUtils;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.OrderConstants;
 import com.taxi.order.service.IOrderInfoService;
@@ -242,7 +243,7 @@ public class ApiPayController {
             Result<String> result = new Result<>();
             result.setCode(OrderConstants.RESULT_CODE_PAY_SUCCESS)
                     .message("支付成功");
-            pushRequest.setContent(JSONUtil.toJsonStr(result));
+            pushRequest.setContent(WsMessageUtils.payInfo(result));
             try {
                 serviceSsePushClient.push(pushRequest);
             } catch (Exception e) {

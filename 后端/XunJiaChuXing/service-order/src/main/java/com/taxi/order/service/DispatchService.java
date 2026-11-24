@@ -13,6 +13,7 @@ import com.taxi.api.response.TerminalResponse;
 import com.taxi.api.result.Result;
 import com.taxi.api.result.ResultCodeEnum;
 import com.taxi.api.util.FeignResultUtils;
+import com.taxi.api.util.WsMessageUtils;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.OrderConstants;
 import com.taxi.order.mapper.OrderInfoMapper;
@@ -86,7 +87,7 @@ public class DispatchService {
             PushRequest passengerPushRequest = new PushRequest();
             passengerPushRequest.setUserId(orderInfo.getPassengerId());
             passengerPushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-            passengerPushRequest.setContent(passengerContent.toString());
+            passengerPushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
             serviceSsePushClient.push(passengerPushRequest);
             return Result.fail(ResultCodeEnum.DISPATCH_FAILED);
         }
@@ -178,7 +179,7 @@ public class DispatchService {
                             PushRequest pushRequest = new PushRequest();
                             pushRequest.setUserId(driverId);
                             pushRequest.setIdentity(IdentityConstant.DRIVER_IDENTITY);
-                            pushRequest.setContent(driverContent.toString());
+                            pushRequest.setContent(WsMessageUtils.orderDispatch(driverContent));
                             serviceSsePushClient.push(pushRequest);
 
                             JSONObject passengerContent = new JSONObject();
@@ -188,7 +189,7 @@ public class DispatchService {
                             PushRequest passengerPushRequest = new PushRequest();
                             passengerPushRequest.setUserId(orderInfo.getPassengerId());
                             passengerPushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-                            passengerPushRequest.setContent(passengerContent.toString());
+                            passengerPushRequest.setContent(WsMessageUtils.orderDispatch(passengerContent));
                             serviceSsePushClient.push(passengerPushRequest);
                         } finally {
                             lock.unlock();

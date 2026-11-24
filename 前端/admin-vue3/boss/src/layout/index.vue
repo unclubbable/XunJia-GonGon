@@ -13,6 +13,16 @@
 
           <!-- 消息提醒 -->
           <div class="header-actions">
+            <div
+              v-if="wsVisible"
+              class="ws-chip"
+              :class="'ws-chip--' + wsStatus"
+              :title="wsLabel"
+              @click="retryWs"
+            >
+              <span class="ws-chip-dot" />
+              <span class="ws-chip-text">{{ wsShortLabel }}</span>
+            </div>
             <el-badge :value="reminderCount" :hidden="reminderCount === 0" type="danger">
               <el-icon :size="24" class="action-icon" @click="showReminders">
                 <Bell />
@@ -161,13 +171,35 @@
         </div>
       </div>
     </el-drawer>
+
+    <!-- 新工单提示：顶栏右侧下方，从左往右滑入 -->
+    <div class="ticket-toast-stack">
+      <transition-group name="ticket-toast-slide">
+        <div
+          v-for="item in ticketToasts"
+          :key="item.id"
+          class="ticket-toast"
+          :class="'ticket-toast--' + item.kind"
+          @click="openTicketFromToast(item)"
+        >
+          <div class="ticket-toast-title">{{ item.headline }}</div>
+          <div class="ticket-toast-body">
+            {{ item.sourceLabel }} · {{ item.title || item.ticketNo || ('#' + item.ticketId) }}
+          </div>
+          <div v-if="item.content" class="ticket-toast-content">{{ item.content }}</div>
+        </div>
+      </transition-group>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { removeToken, getToken } from '../utils/auth'
+import { clearSession, getToken, getUsername } from '../utils/auth'
+import { stopAdminWs, onWs, getWsStatus, retryAdminWs } from '../utils/wsHub'
+import { logout as apiLogout } from '../api/user'
+import { TICKET_SOURCE_MAP, formatCategory } from '../utils/ticketDict'
 import {
   Search, Bell, ArrowDown, DataLine, User, Van, Connection,
   List, Money, Monitor, Setting, Tools, WarningFilled, Tickets, Cpu
@@ -176,7 +208,7 @@ import {
 const router = useRouter()
 
 // 用户信息相关
-const username = ref('admin')
+const username = ref(getUsername() || 'admin')
 const userAvatar = ref('https://java-cjw11.oss-cn-beijing.aliyuncs.com/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202026-03-22%20173314.png') // 默认头像，可替换
 
 
@@ -188,14 +220,119 @@ const reminders = ref([
   { id: 1, content: '以后使用MQ消息队列开发,目前没有该功能', date: '2026-3-27' }
 ])
 
+/** WebSocket 连接状态 */
+const wsInfo = ref(getWsStatus())
+let offWsStatus = null
+let wsCountdownTimer = null
+const wsRemainSec = ref(0)
+
+const wsStatus = computed(() => wsInfo.value.status || 'idle')
+const wsVisible = computed(() => ['connecting', 'reconnecting', 'failed'].includes(wsStatus.value))
+const wsShortLabel = computed(() => {
+  const s = wsStatus.value
+  const n = wsInfo.value.reconnectCount || 0
+  const max = wsInfo.value.maxReconnect || 10
+  if (s === 'connecting') return '信号不好，连接中'
+  if (s === 'reconnecting') {
+    return wsRemainSec.value > 0
+      ? `信号不好，重连 ${n}/${max} · ${wsRemainSec.value}s`
+      : `信号不好，正在重连 ${n}/${max}`
+  }
+  if (s === 'failed') return '实时连接已中断'
+  return ''
+})
+const wsLabel = computed(() => {
+  const s = wsStatus.value
+  if (s === 'connecting') return '当前信号不好，正在连接实时通道，点击可立即重试'
+  if (s === 'reconnecting') return '当前信号不好，正在重连，点击可立即重试'
+  if (s === 'failed') return '实时连接已中断，点击重试'
+  return ''
+})
+
+function clearWsCountdown() {
+  if (wsCountdownTimer) {
+    clearInterval(wsCountdownTimer)
+    wsCountdownTimer = null
+  }
+  wsRemainSec.value = 0
+}
+
+function startWsCountdown(delayMs) {
+  clearWsCountdown()
+  if (!delayMs || delayMs <= 0) return
+  wsRemainSec.value = Math.ceil(delayMs / 1000)
+  wsCountdownTimer = setInterval(() => {
+    wsRemainSec.value = Math.max(0, wsRemainSec.value - 1)
+    if (wsRemainSec.value <= 0) clearWsCountdown()
+  }, 1000)
+}
+
+function applyWsStatus(info) {
+  wsInfo.value = info || getWsStatus()
+  if (wsInfo.value.status === 'reconnecting') {
+    startWsCountdown(wsInfo.value.nextRetryDelayMs || 0)
+  } else {
+    clearWsCountdown()
+  }
+}
+
+const retryWs = () => {
+  retryAdminWs()
+}
+
+/** 工单右上角滑入提示（新建 / 撤销） */
+const ticketToasts = ref([])
+let toastSeq = 0
+let offTicketCreated = null
+let offTicketCancelled = null
+const TOAST_TTL_MS = 8000
+
+const pushTicketToast = (payload, kind = 'created') => {
+  if (!payload?.ticketId) return
+  const id = ++toastSeq
+  const sourceLabel = TICKET_SOURCE_MAP[payload.source] || '用户'
+  const categoryLabel = formatCategory(payload.category)
+  const headline = kind === 'cancelled' ? '用户已撤销工单' : '新工单待受理'
+  const content = kind === 'cancelled'
+    ? (payload.content || '请停止处理该工单')
+    : (payload.content || '')
+  ticketToasts.value = [
+    {
+      id,
+      kind,
+      headline,
+      ticketId: payload.ticketId,
+      ticketNo: payload.ticketNo,
+      title: payload.title || categoryLabel,
+      content: String(content).slice(0, 60),
+      sourceLabel
+    },
+    ...ticketToasts.value
+  ].slice(0, 4)
+  setTimeout(() => {
+    ticketToasts.value = ticketToasts.value.filter((t) => t.id !== id)
+  }, TOAST_TTL_MS)
+}
+
+const openTicketFromToast = (item) => {
+  ticketToasts.value = ticketToasts.value.filter((t) => t.id !== item.id)
+  router.push({ path: '/ticket/list', query: { ticketId: item.ticketId } })
+}
+
 // 当前激活菜单 (根据路由高亮)
 const activeMenu = computed(() => {
   return router.currentRoute.value.path
 })
 
-// 退出登录
-const logout = () => {
-  removeToken()
+// 退出登录：先调后端作废 Redis token，再清本地
+const logout = async () => {
+  try {
+    await apiLogout()
+  } catch (e) {
+    // 即便接口失败也清本地，避免卡在已坏会话
+  }
+  stopAdminWs()
+  clearSession()
   router.push('/login')
 }
 
@@ -237,6 +374,20 @@ onMounted(() => {
     fetchUserInfo()
     fetchReminders()
   }
+  applyWsStatus(getWsStatus())
+  offWsStatus = onWs('status', applyWsStatus)
+  offTicketCreated = onWs('ticketCreated', (p) => pushTicketToast(p, 'created'))
+  offTicketCancelled = onWs('ticketCancelled', (p) => pushTicketToast(p, 'cancelled'))
+})
+
+onUnmounted(() => {
+  if (offWsStatus) offWsStatus()
+  if (offTicketCreated) offTicketCreated()
+  if (offTicketCancelled) offTicketCancelled()
+  offWsStatus = null
+  offTicketCreated = null
+  offTicketCancelled = null
+  clearWsCountdown()
 })
 </script>
 
@@ -304,6 +455,54 @@ onMounted(() => {
 
 .action-icon:hover {
   color: var(--xj-primary, #1890ff);
+}
+
+.ws-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 17px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.ws-chip--connecting,
+.ws-chip--reconnecting {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #d46b08;
+}
+
+.ws-chip--failed {
+  background: #fff1f0;
+  border-color: #ffa39e;
+  color: #cf1322;
+}
+
+.ws-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ws-chip--connecting .ws-chip-dot,
+.ws-chip--reconnecting .ws-chip-dot {
+  animation: ws-chip-pulse 1.2s ease-in-out infinite;
+}
+
+.ws-chip-text {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+@keyframes ws-chip-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 
 .user-info {
@@ -385,5 +584,86 @@ onMounted(() => {
   text-align: center;
   color: #909399;
   padding: 24px 0;
+}
+
+.ticket-toast-stack {
+  position: fixed;
+  top: calc(var(--xj-header-height, 64px) + 12px);
+  right: 24px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 360px;
+}
+
+.ticket-toast {
+  pointer-events: auto;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #91d5ff;
+  border-left: 4px solid var(--xj-primary, #1890ff);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(24, 144, 255, 0.15);
+  padding: 12px 14px;
+  min-width: 280px;
+}
+
+.ticket-toast--created:hover {
+  background: #f0f9ff;
+}
+
+.ticket-toast--cancelled {
+  border-color: #ffd591;
+  border-left-color: #fa8c16;
+  box-shadow: 0 8px 24px rgba(250, 140, 22, 0.18);
+}
+
+.ticket-toast--cancelled:hover {
+  background: #fff7e6;
+}
+
+.ticket-toast--cancelled .ticket-toast-title {
+  color: #d46b08;
+}
+
+.ticket-toast-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--xj-primary, #1890ff);
+  margin-bottom: 4px;
+}
+
+.ticket-toast-body {
+  font-size: 14px;
+  color: #303133;
+  font-weight: 500;
+}
+
+.ticket-toast-content {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 从左往右滑入 */
+.ticket-toast-slide-enter-active,
+.ticket-toast-slide-leave-active {
+  transition: all 0.35s ease;
+}
+
+.ticket-toast-slide-enter-from {
+  opacity: 0;
+  transform: translateX(-48px);
+}
+
+.ticket-toast-slide-leave-to {
+  opacity: 0;
+  transform: translateX(24px);
 }
 </style>

@@ -1,5 +1,38 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { watch, onMounted, onUnmounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import { getToken, getUserId } from '@/utils/auth'
+import { startAdminWs, stopAdminWs, onWs } from '@/utils/wsHub'
+import { handleKicked } from '@/utils/kick'
+
+const route = useRoute()
+let offForceLogout = null
+
+function syncWs() {
+  if (getToken() && getUserId() && route.path !== '/login') {
+    startAdminWs()
+  } else {
+    stopAdminWs()
+  }
+}
+
+onMounted(() => {
+  offForceLogout = onWs('forceLogout', (payload) => {
+    const reason = payload?.reason === 'OTHER_LOGIN' ? '账号已在别处登录' : '登录已失效'
+    handleKicked(reason)
+  })
+  syncWs()
+})
+
+onUnmounted(() => {
+  if (offForceLogout) offForceLogout()
+  stopAdminWs()
+})
+
+watch(
+  () => [route.path, getToken(), getUserId()],
+  () => syncWs()
+)
 </script>
 
 <template>

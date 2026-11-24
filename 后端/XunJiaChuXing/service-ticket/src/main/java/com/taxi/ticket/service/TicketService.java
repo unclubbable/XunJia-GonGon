@@ -43,6 +43,7 @@ import com.taxi.common.util.UserContext;
 import com.taxi.ticket.mapper.OrderRefundMapper;
 import com.taxi.ticket.mapper.TicketMapper;
 import com.taxi.ticket.mapper.TicketMessageMapper;
+import com.taxi.ticket.notify.TicketWsNotify;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,8 @@ public class TicketService {
     private ServicePriceClient servicePriceClient;
     @Autowired
     private ServiceAiClient serviceAiClient;
+    @Autowired
+    private TicketWsNotify ticketWsNotify;
 
     @Transactional(rollbackFor = Exception.class)
     public Result<Ticket> create(TicketCreateRequest request) {
@@ -131,9 +134,11 @@ public class TicketService {
         ticketMapper.updateById(ticket);
 
         insertSystemMessage(ticket.getId(), "工单已创建，等待受理。单号：" + ticketNo);
+        Ticket saved = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterCreated(saved);
         log.info("工单创建成功 ticketId={} ticketNo={} source={} category={}",
                 ticket.getId(), ticketNo, source, category);
-        return Result.ok(ticketMapper.selectById(ticket.getId()));
+        return Result.ok(saved);
     }
 
     public Result<Map<String, Object>> myList(int page, int limit, String status) {
@@ -193,7 +198,9 @@ public class TicketService {
         }
         ticket.setStatus(TicketConstants.STATUS_CANCELLED);
         updateTicketOptimistic(ticket);
-        insertSystemMessage(ticketId, "用户已撤销工单");
+        TicketMessage sysMsg = insertSystemMessage(ticketId, "用户已撤销工单");
+        Ticket latest = ticketMapper.selectById(ticketId);
+        ticketWsNotify.afterCancelled(latest != null ? latest : ticket, sysMsg);
         return Result.ok();
     }
 
@@ -206,11 +213,13 @@ public class TicketService {
         }
         TokenResult user = requireLoginUser();
         int senderType = resolveSource(user.getIdentity());
-        insertUserMessage(ticket.getId(), senderType, null, user.getPhone(), request.getContent().trim());
+        TicketMessage msg = insertUserMessage(ticket.getId(), senderType, null, user.getPhone(), request.getContent().trim());
         if (TicketConstants.STATUS_PENDING_USER.equals(ticket.getStatus())) {
             ticket.setStatus(TicketConstants.STATUS_IN_PROGRESS);
             updateTicketOptimistic(ticket);
         }
+        Ticket latest = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterUserAppend(latest != null ? latest : ticket, msg);
         return Result.ok();
     }
 
@@ -226,8 +235,10 @@ public class TicketService {
         ticket.setAssigneeName(request.getAssigneeName());
         updateTicketOptimistic(ticket);
         String name = StringUtils.hasText(request.getAssigneeName()) ? request.getAssigneeName() : "运营";
-        insertSystemMessage(ticket.getId(), "工单已由 " + name + " 受理");
-        return Result.ok(ticketMapper.selectById(ticket.getId()));
+        TicketMessage sysMsg = insertSystemMessage(ticket.getId(), "工单已由 " + name + " 受理");
+        Ticket latest = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterStatusChange(latest != null ? latest : ticket, sysMsg);
+        return Result.ok(latest != null ? latest : ticketMapper.selectById(ticket.getId()));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -261,10 +272,12 @@ public class TicketService {
 
         if (Boolean.TRUE.equals(request.getWaitUser())
                 && TicketConstants.STATUS_IN_PROGRESS.equals(ticket.getStatus())) {
-            Ticket latest = requireTicket(ticket.getId());
-            latest.setStatus(TicketConstants.STATUS_PENDING_USER);
-            updateTicketOptimistic(latest);
+            Ticket pending = requireTicket(ticket.getId());
+            pending.setStatus(TicketConstants.STATUS_PENDING_USER);
+            updateTicketOptimistic(pending);
         }
+        Ticket latest = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterAdminReply(latest != null ? latest : ticket, msg);
         return Result.ok();
     }
 
@@ -277,9 +290,11 @@ public class TicketService {
         ticket.setResultSummary(request.getResultSummary());
         fillAssigneeIfPresent(ticket, request);
         updateTicketOptimistic(ticket);
-        insertSystemMessage(ticket.getId(), "工单已解决"
+        TicketMessage sysMsg = insertSystemMessage(ticket.getId(), "工单已解决"
                 + (StringUtils.hasText(request.getResultSummary()) ? "：" + request.getResultSummary() : ""));
-        return Result.ok(ticketMapper.selectById(ticket.getId()));
+        Ticket latest = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterStatusChange(latest != null ? latest : ticket, sysMsg);
+        return Result.ok(latest != null ? latest : ticketMapper.selectById(ticket.getId()));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -294,8 +309,10 @@ public class TicketService {
         ticket.setRejectReason(request.getRejectReason().trim());
         fillAssigneeIfPresent(ticket, request);
         updateTicketOptimistic(ticket);
-        insertSystemMessage(ticket.getId(), "工单已驳回：" + request.getRejectReason().trim());
-        return Result.ok(ticketMapper.selectById(ticket.getId()));
+        TicketMessage sysMsg = insertSystemMessage(ticket.getId(), "工单已驳回：" + request.getRejectReason().trim());
+        Ticket latest = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterStatusChange(latest != null ? latest : ticket, sysMsg);
+        return Result.ok(latest != null ? latest : ticketMapper.selectById(ticket.getId()));
     }
 
     /** 通过并执行；失败直接返回，不做分布式回滚 */
@@ -321,8 +338,10 @@ public class TicketService {
                 ? request.getResultSummary() : "申请已通过并执行");
         fillAssigneeIfPresent(ticket, request);
         updateTicketOptimistic(ticket);
-        insertSystemMessage(ticket.getId(), "申请已通过并执行：" + ticket.getResultSummary());
-        return Result.ok(ticketMapper.selectById(ticket.getId()));
+        TicketMessage sysMsg = insertSystemMessage(ticket.getId(), "申请已通过并执行：" + ticket.getResultSummary());
+        Ticket latest = ticketMapper.selectById(ticket.getId());
+        ticketWsNotify.afterStatusChange(latest != null ? latest : ticket, sysMsg);
+        return Result.ok(latest != null ? latest : ticketMapper.selectById(ticket.getId()));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -1033,7 +1052,7 @@ public class TicketService {
         }
     }
 
-    private void insertSystemMessage(Long ticketId, String content) {
+    private TicketMessage insertSystemMessage(Long ticketId, String content) {
         TicketMessage msg = new TicketMessage();
         msg.setTicketId(ticketId);
         msg.setSenderType(TicketConstants.SENDER_SYSTEM);
@@ -1042,9 +1061,10 @@ public class TicketService {
         msg.setMsgType(TicketConstants.MSG_EVENT);
         msg.setContentSource(TicketConstants.CONTENT_SOURCE_HUMAN);
         ticketMessageMapper.insert(msg);
+        return msg;
     }
 
-    private void insertUserMessage(Long ticketId, int senderType, Long senderId, String senderName, String content) {
+    private TicketMessage insertUserMessage(Long ticketId, int senderType, Long senderId, String senderName, String content) {
         TicketMessage msg = new TicketMessage();
         msg.setTicketId(ticketId);
         msg.setSenderType(senderType);
@@ -1054,6 +1074,7 @@ public class TicketService {
         msg.setMsgType(TicketConstants.MSG_TEXT);
         msg.setContentSource(TicketConstants.CONTENT_SOURCE_HUMAN);
         ticketMessageMapper.insert(msg);
+        return msg;
     }
 
     private String buildBizNo(String prefix, Long id) {

@@ -94,7 +94,8 @@ import { reactive, ref, nextTick, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { login, getLoginPublicKey } from '../../api/user'
-import { setToken } from '../../utils/auth'
+import { setToken, setUserId, setUsername } from '../../utils/auth'
+import { startAdminWs } from '../../utils/wsHub'
 import { ElMessage } from 'element-plus'
 import { User, Lock, View, Hide, Van } from '@element-plus/icons-vue'
 import JSEncrypt from 'jsencrypt'
@@ -174,6 +175,9 @@ const handleLogin = () => {
         password: encryptedPassword
       })
       setToken(res.data.token)
+      setUserId(res.data.userId)
+      setUsername(res.data.username || loginForm.username)
+      startAdminWs()
       ElMessage({ message: '登录成功', type: 'success' })
       router.push({ path: '/' })
     } catch {

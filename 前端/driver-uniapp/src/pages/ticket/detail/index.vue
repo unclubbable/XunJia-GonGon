@@ -1,5 +1,6 @@
 <template>
 	<view class="page" v-if="ticket">
+		<WsStatusBanner />
 		<view class="card card--hero">
 			<view class="row">
 				<text class="no">{{ ticket.ticketNo }}</text>
@@ -47,11 +48,13 @@
 
 
 <script setup>
-	import { computed, ref } from 'vue'
-	import { onLoad } from '@dcloudio/uni-app'
+	import { computed, ref, onUnmounted } from 'vue'
+	import { onLoad, onShow } from '@dcloudio/uni-app'
 	import { ApiTicketMyDetail, ApiTicketAppendMessage, ApiTicketCancel } from '../../../api/ticket'
 	import { DRIVER_CATEGORIES, statusText, categoryLabel } from '../../../utils/ticketDict'
 	import { ShowToast } from '../../../utils'
+	import { onWs } from '../../../utils/wsHub'
+	import WsStatusBanner from '../../../component/WsStatusBanner.vue'
 
 	const ticketId = ref(null)
 	const ticket = ref(null)
@@ -65,10 +68,39 @@
 	})
 
 	const load = async () => {
+		if (!ticketId.value) return
 		const { error, result } = await ApiTicketMyDetail(ticketId.value)
 		if (error) return
 		ticket.value = result?.ticket
 		messages.value = result?.messages || []
+	}
+
+	const applyTicketPush = (payload) => {
+		if (!payload || Number(payload.ticketId) !== Number(ticketId.value)) return
+		if (payload.status) {
+			if (ticket.value) ticket.value = { ...ticket.value, status: payload.status }
+		}
+		if (payload.messageId != null) {
+			const exists = messages.value.some((m) => Number(m.id) === Number(payload.messageId))
+			if (!exists) {
+				messages.value = [
+					...messages.value,
+					{
+						id: payload.messageId,
+						ticketId: payload.ticketId,
+						senderType: payload.senderType,
+						senderName: payload.senderName,
+						content: payload.content,
+						msgType: payload.msgType,
+						gmtCreate: payload.gmtCreate || ''
+					}
+				]
+			}
+		}
+		// 状态类再补拉一次，避免头信息与列表不一致
+		if (payload.type === 'TICKET_STATUS') {
+			load()
+		}
 	}
 
 	const senderLabel = (type) => {
@@ -112,9 +144,20 @@
 		})
 	}
 
+	let offTicket = null
 	onLoad((query) => {
 		ticketId.value = Number(query?.ticketId)
 		if (ticketId.value) load()
+		offTicket = onWs('ticket', applyTicketPush)
+	})
+
+	onShow(() => {
+		if (ticketId.value) load()
+	})
+
+	onUnmounted(() => {
+		if (offTicket) offTicket()
+		offTicket = null
 	})
 </script>
 

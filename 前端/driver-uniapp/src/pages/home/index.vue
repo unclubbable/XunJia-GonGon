@@ -1,5 +1,6 @@
 <template>
 	<view class="driver-home">
+		<WsStatusBanner edge />
 		<!-- 订单消息组件 -->
 		<view class="message-wrapper">
 			<BWebSocket @receiveOrder="handleReceiveOrder" />
@@ -75,6 +76,7 @@
  * 路由：pages/home/index
  */
 import BWebSocket from '../../component/BWebSocket.vue';
+import WsStatusBanner from '../../component/WsStatusBanner.vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { ApiGetCurrentOrder } from '../../api/order';

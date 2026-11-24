@@ -1,5 +1,6 @@
 <template>
 	<view class="home-page">
+		<WsStatusBanner float alignCity />
 		<view class="map-layer">
 			<!-- 底部选点卡 + tabBar，留白需大于订单详情页 -->
 			<BMap ref="mapRef" :initial-view-mode="'2D'" :bottom-padding="homeMapBottomPad" locate-mode="self" />
@@ -17,6 +18,7 @@ import { ApiGetCityList } from '../../api/city'
 import { useStore } from 'vuex'
 import BMap from '../../component/BMap.vue'
 import SelectPoint from './component/SelectPoint.vue'
+import WsStatusBanner from '../../component/WsStatusBanner.vue'
 
 const mapRef = ref(null)
 const $store = useStore()

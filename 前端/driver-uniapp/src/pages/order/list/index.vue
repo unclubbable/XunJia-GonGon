@@ -1,5 +1,6 @@
 <template>
   <view class="order-info">
+    <WsStatusBanner />
     <!-- 顶部筛选分段器  -->
     <view class="top-scroll">
       <view class="top-tab" :class="{ active: currentFilter === 'all' }" @tap="filterOrders('all')">全部</view>
@@ -52,6 +53,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import BWebSocket from '../../../component/BWebSocket.vue';
+import WsStatusBanner from '../../../component/WsStatusBanner.vue'
 import { ApiGetAllOrderInfo } from '../../../api/order';
 import { onShow } from '@dcloudio/uni-app';
 import { HandleApiError } from '../../../utils';

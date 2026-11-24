@@ -5,12 +5,14 @@ import com.taxi.api.result.Result;
 import com.taxi.config.RsaKeyConfig;
 import com.taxi.service.AdminUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Map;
 
@@ -53,10 +55,23 @@ public class AdminController {
     }
 
     /**
-     * 登出
+     * 登出：清除 Redis token，并关闭本端 WS
      */
     @PostMapping("/logout")
-    public Result logout() {
-        return Result.ok();
+    public Result logout(HttpServletRequest request) {
+        String token = resolveToken(request);
+        return adminUserService.logout(token);
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String auth = request.getHeader("Authorization");
+        if (StringUtils.hasText(auth)) {
+            return auth.trim();
+        }
+        String xToken = request.getHeader("X-Token");
+        if (StringUtils.hasText(xToken)) {
+            return xToken.trim();
+        }
+        return request.getParameter("token");
     }
 }

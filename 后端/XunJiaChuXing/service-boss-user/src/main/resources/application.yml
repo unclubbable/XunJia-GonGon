@@ -38,6 +38,11 @@ spring:
       validation-timeout: 5000
       # 心跳间隔（毫秒），定期发送 ping 保持连接活跃（HikariCP 3.4.0+ 支持）
       keepalive-time: 30000   # 每30秒一次心跳
+  redis:
+    host: 192.168.220.128
+    port: 6379
+    password: CHANGE_ME
+    database: 0
 
 feign:
   sentinel:

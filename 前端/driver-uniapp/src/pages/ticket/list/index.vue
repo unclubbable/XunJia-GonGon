@@ -1,5 +1,6 @@
 <template>
 	<view class="page">
+		<WsStatusBanner />
 		<view class="page-header">
 			<text class="page-title">我的工单</text>
 			<text class="page-subtitle">提交问题与进度查询</text>
@@ -43,6 +44,7 @@
 	import { ApiTicketMyList } from '../../../api/ticket'
 	import { DRIVER_CATEGORIES, statusText, categoryLabel } from '../../../utils/ticketDict'
 	import { ShowToast } from '../../../utils'
+	import WsStatusBanner from '../../../component/WsStatusBanner.vue'
 
 	const list = ref([])
 	const loading = ref(false)

@@ -1,5 +1,6 @@
 <template>
   <view class="order-info">
+    <WsStatusBanner />
     <!-- 顶部筛选标签（横向滚动） -->
     <scroll-view scroll-x class="top-scroll" show-scrollbar="false">
       <view
@@ -63,6 +64,7 @@ import { ref, computed } from 'vue';
 import { ApiGetAllOrderInfo } from '../../../api/order';
 import { onShow } from '@dcloudio/uni-app';
 import { HandleApiError } from '../../../utils';
+import WsStatusBanner from '../../../component/WsStatusBanner.vue'
 
 // 标签配置
 const tabs = [

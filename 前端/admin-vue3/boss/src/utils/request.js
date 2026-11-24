@@ -1,13 +1,16 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { getToken } from '@/utils/auth'
+import { handleKicked } from '@/utils/kick'
 
-const TOKEN_ERROR_CODES = [1199, 1198]
+/** 1199 过期；1198 身份；1197 被挤下线 */
+const TOKEN_ERROR_CODES = [1199, 1198, 1197]
 
 function getErrorMessage(code, defaultMessage) {
   const map = {
     1199: '登录已过期，请重新登录',
     1198: '身份验证失败',
+    1197: '账号已在别处登录',
     1700: defaultMessage || '参数校验失败',
     1701: defaultMessage || '参数错误',
     1800: '系统繁忙，请稍后重试',
@@ -38,8 +41,10 @@ const service = axios.create({
 
 service.interceptors.request.use(
   config => {
-    if (getToken()) {
-      config.headers['X-Token'] = getToken()
+    const token = getToken()
+    if (token) {
+      config.headers['Authorization'] = token
+      config.headers['X-Token'] = token
     }
     return config
   },
@@ -61,7 +66,7 @@ service.interceptors.response.use(
         duration: 5 * 1000
       })
       if (TOKEN_ERROR_CODES.includes(res.code)) {
-        // 管理端可在此跳转登录
+        handleKicked(message, { toast: false })
       }
       return Promise.reject(new Error(message))
     }
@@ -73,6 +78,9 @@ service.interceptors.response.use(
       const res = error.response.data
       const message = getErrorMessage(res.code, res.message)
       ElMessage({ message, type: 'error', duration: 5 * 1000 })
+      if (TOKEN_ERROR_CODES.includes(res.code)) {
+        handleKicked(message, { toast: false })
+      }
       return Promise.reject(new Error(message))
     }
     ElMessage({

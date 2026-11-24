@@ -1,5 +1,6 @@
 <template>
 	<view class="personal-center">
+		<WsStatusBanner />
 		<!-- 顶部个人信息卡片 -->
 		<view class="user-card">
 			<view class="user-card__glow user-card__glow--tr"></view>
@@ -65,6 +66,7 @@
 	import { ApiGetUserInfo } from '../../api/user';
 	import { ApiGetDistrict } from '../../api/district';
 	import BWebSocket from '../../component/BWebSocket.vue';
+	import WsStatusBanner from '../../component/WsStatusBanner.vue'
 
 	const userInfo = ref({
 		driverPhone: ''

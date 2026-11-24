@@ -1,5 +1,6 @@
 <template>
 	<view class="personal-center">
+		<WsStatusBanner />
 		<!-- 顶部用户卡片 -->
 		<view class="user-card">
 			<view class="user-card__glow user-card__glow--tr"></view>
@@ -45,6 +46,7 @@
 	import { useStore } from "vuex";
 	import { computed } from 'vue';
 	import gdMapConf from '../../config/gdMapConf';
+	import WsStatusBanner from '../../component/WsStatusBanner.vue'
 
 	const $store = useStore();
 	const userInfo = computed(() => $store.state.userInfo);

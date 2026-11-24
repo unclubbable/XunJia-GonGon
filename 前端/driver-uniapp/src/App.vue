@@ -1,7 +1,45 @@
 <script setup>
-import { onLaunch } from '@dcloudio/uni-app'
+import { watch } from 'vue'
+import { onLaunch, onShow } from '@dcloudio/uni-app'
+import { useStore } from 'vuex'
+import {
+	initDriverWsHub,
+	startDriverWs,
+	stopDriverWs,
+	getWsStatus,
+	retryDriverWs
+} from './utils/wsHub'
 
-onLaunch(() => {})
+const $store = useStore()
+
+onLaunch(() => {
+	initDriverWsHub(() => {
+		const conf = $store.state.serverConf || {}
+		return {
+			userId: $store.state.userInfo?.driverId,
+			token: $store.state.token || '',
+			wsBase: conf.ws || conf.sse || ''
+		}
+	})
+})
+
+watch(
+	() => [$store.state.token, $store.state.userInfo?.driverId, $store.state.serverConf?.ws, $store.state.serverConf?.sse],
+	([token, driverId]) => {
+		if (token && driverId) {
+			startDriverWs()
+		} else {
+			stopDriverWs()
+		}
+	},
+	{ immediate: true }
+)
+
+onShow(() => {
+	if (getWsStatus()?.status === 'failed') {
+		retryDriverWs()
+	}
+})
 </script>
 
 <style>

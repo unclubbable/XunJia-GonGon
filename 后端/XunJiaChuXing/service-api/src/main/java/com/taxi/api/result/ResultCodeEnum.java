@@ -27,6 +27,9 @@ public enum ResultCodeEnum {
 
     TOKEN_IDENTITY_MISMATCH(1198,"身份与访问路径不匹配"),
 
+    /** 同账号在其他端登录，当前会话已失效 */
+    TOKEN_REPLACED(1197,"账号已在别处登录"),
+
     /**
      * 用户提示：1200-1299
      */
