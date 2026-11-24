@@ -5,13 +5,20 @@ import com.taxi.api.result.Result;
 import com.taxi.config.RsaKeyConfig;
 import com.taxi.service.AdminUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * 管理端登录等接口。
+ * 网关入口为 /boss-user/**，StripPrefix=1 后落到本服务，故此处不再带 /boss-user 前缀。
+ */
 @RestController
-@RequestMapping(value = "/boss-user")
 public class AdminController {
 
     @Autowired
@@ -33,7 +40,7 @@ public class AdminController {
      * 登录（password 为 RSA 密文 Base64）
      */
     @PostMapping("/login")
-    public Result login(@RequestBody AdminUser user){
+    public Result login(@RequestBody AdminUser user) {
         return adminUserService.login(user);
     }
 
@@ -49,7 +56,7 @@ public class AdminController {
      * 登出
      */
     @PostMapping("/logout")
-    public Result logout(){
+    public Result logout() {
         return Result.ok();
     }
 }

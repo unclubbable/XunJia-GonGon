@@ -161,10 +161,12 @@ logging:
     com.taxi.gateweb: debug
   pattern:
     dateformat: HH:mm:ss:SSS
-# 白名单：管理端沿用原网关不鉴权；司机/乘客登录、支付回调不鉴权
+# 白名单：管理端仅登录相关放行；司机/乘客登录、支付回调不鉴权
+# 管理端 Vite：/api/* → /boss-user/*，与其它业务接口一致，不再叠双前缀
 auth:
   inpath:
-    - /boss-user/**
+    - /boss-user/login
+    - /boss-user/login/public-key
     - /driver-user/noauth
     - /driver-user/verification-code
     - /driver-user/verification-code-check

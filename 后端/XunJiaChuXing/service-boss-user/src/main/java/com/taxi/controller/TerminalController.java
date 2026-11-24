@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 网关 /boss-user/Terminal → StripPrefix 后为本路径。
+ */
 @RestController
-@RequestMapping(value = "/boss-user/Terminal")
+@RequestMapping(value = "/Terminal")
 public class TerminalController {
     @Autowired
     private TerminalService terminalService;

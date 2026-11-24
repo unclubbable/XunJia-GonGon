@@ -3,14 +3,14 @@ import request from '@/utils/request'
 /** 获取登录 RSA 公钥（PEM） */
 export function getLoginPublicKey() {
   return request({
-    url: '/boss-user/login/public-key',
+    url: '/login/public-key',
     method: 'get'
   })
 }
 
 export function login(data) {
   return request({
-    url: '/boss-user/login',
+    url: '/login',
     method: 'post',
     data
   })
@@ -18,7 +18,7 @@ export function login(data) {
 
 export function getInfo(token) {
   return request({
-    url: '/boss-user/info',
+    url: '/info',
     method: 'get',
     params: { token }
   })
@@ -26,19 +26,19 @@ export function getInfo(token) {
 
 export function logout() {
   return request({
-    url: '/boss-user/logout',
+    url: '/logout',
     method: 'post'
   })
 }
 export function getTerminalList() { 
   return request({
-    url:'/boss-user/Terminal',
+    url:'/Terminal',
     method: 'get',
   })
 }
 export function getTerminalByVehicleNo(keyword) { 
   return request({
-    url:'/boss-user/Terminal/'+keyword,
+    url:'/Terminal/'+keyword,
     method: 'get',
   })
 }
