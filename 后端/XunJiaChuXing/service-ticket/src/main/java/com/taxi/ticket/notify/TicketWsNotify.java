@@ -1,6 +1,6 @@
 package com.taxi.ticket.notify;
 
-import com.taxi.api.Client.ServiceSsePushClient;
+import com.taxi.api.Client.ServiceWsPushClient;
 import com.taxi.api.constant.TicketConstants;
 import com.taxi.api.dto.Ticket;
 import com.taxi.api.dto.TicketMessage;
@@ -23,7 +23,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class TicketWsNotify {
 
     @Autowired
-    private ServiceSsePushClient pushClient;
+    private ServiceWsPushClient pushClient;
 
     /** 新工单创建 → 广播给所有在线运营 */
     public void afterCreated(Ticket ticket) {

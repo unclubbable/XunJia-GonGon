@@ -4,10 +4,10 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.taxi.api.result.Result;
 import com.taxi.api.result.ResultCodeEnum;
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.TokenConstants;
-import com.taxi.gateweb.JWTPathclass.InPath;
+import com.taxi.gateweb.auth.InPath;
 import com.taxi.common.util.JwtUtils;
 import com.taxi.common.util.RedisPrefixUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -75,14 +75,14 @@ public class JWTFilter implements GlobalFilter, Ordered {
                 }
             }
             if (result && !matchIdentity(requestPath, identity)) {
-                log.error("身份与访问路径不匹配，path={} identity={}", requestPath, identity);
+                log.warn("身份与访问路径不匹配，path={} identity={}", requestPath, identity);
                 result = false;
                 errorCode = ResultCodeEnum.TOKEN_IDENTITY_MISMATCH;
             }
         }
 
         if (!result) {
-            log.error("token验证失败, code={}", errorCode.getCode());
+            log.warn("token验证失败, code={}", errorCode.getCode());
             return unauthorized(exchange.getResponse(), errorCode);
         }
 

@@ -1,19 +1,19 @@
 package com.taxi.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.taxi.api.Client.ServiceSsePushClient;
+import com.taxi.api.Client.ServiceWsPushClient;
 import com.taxi.api.request.AdminUser;
 import com.taxi.api.request.KickRequest;
 import com.taxi.api.response.AdminTokenResponse;
 import com.taxi.api.result.Result;
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.TokenConstants;
 import com.taxi.common.util.JwtUtils;
 import com.taxi.common.util.RedisPrefixUtils;
 import com.taxi.config.RsaKeyConfig;
-import com.taxi.config.bossUser;
-import com.taxi.mapper.bossUserMapper;
+import com.taxi.config.BossUser;
+import com.taxi.mapper.BossUserMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -33,7 +33,7 @@ public class AdminUserService {
     private static final long ACCESS_TOKEN_DAYS = 30;
 
     @Autowired
-    private bossUserMapper bossUserMapper;
+    private BossUserMapper bossUserMapper;
 
     @Autowired
     private RsaKeyConfig.RsaKeyHolder rsaKeyHolder;
@@ -42,7 +42,7 @@ public class AdminUserService {
     private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
-    private ServiceSsePushClient serviceSsePushClient;
+    private ServiceWsPushClient serviceWsPushClient;
 
     public Result login(AdminUser user) {
         if (user == null || !StringUtils.hasText(user.getUsername()) || !StringUtils.hasText(user.getPassword())) {
@@ -56,9 +56,9 @@ public class AdminUserService {
             return Result.fail().message("密码解密失败，请刷新后重试！");
         }
 
-        QueryWrapper<bossUser> wrapper = new QueryWrapper<bossUser>()
+        QueryWrapper<BossUser> wrapper = new QueryWrapper<BossUser>()
                 .eq("username", user.getUsername());
-        bossUser boss = bossUserMapper.selectOne(wrapper);
+        BossUser boss = bossUserMapper.selectOne(wrapper);
         if (boss == null) {
             return Result.fail().message("用户不存在！");
         }
@@ -97,7 +97,7 @@ public class AdminUserService {
             return Result.fail().message("token无效");
         }
         String username = tokenResult.getPhone();
-        bossUser boss = bossUserMapper.selectOne(new QueryWrapper<bossUser>().eq("username", username));
+        BossUser boss = bossUserMapper.selectOne(new QueryWrapper<BossUser>().eq("username", username));
 
         JSONObject userInfo = new JSONObject();
         JSONArray roles = new JSONArray();
@@ -134,7 +134,7 @@ public class AdminUserService {
                 kick.setUserId(Long.parseLong(uidStr.trim()));
                 kick.setIdentity(IdentityConstant.ADMIN_IDENTITY);
                 kick.setSendForceLogout(false);
-                serviceSsePushClient.kick(kick);
+                serviceWsPushClient.kick(kick);
             } catch (Exception e) {
                 log.warn("登出踢 WS 失败 username={}", username, e);
             }
@@ -148,7 +148,7 @@ public class AdminUserService {
             kick.setUserId(userId);
             kick.setIdentity(IdentityConstant.ADMIN_IDENTITY);
             kick.setSendForceLogout(true);
-            String r = serviceSsePushClient.kick(kick);
+            String r = serviceWsPushClient.kick(kick);
             log.info("登录踢旧 WS userId={} result={}", userId, r);
         } catch (Exception e) {
             // 踢失败不阻断登录（例如 websocket 未启动）

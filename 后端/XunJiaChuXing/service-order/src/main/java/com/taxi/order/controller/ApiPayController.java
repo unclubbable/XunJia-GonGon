@@ -13,7 +13,7 @@ import com.alipay.api.response.AlipayTradeFastpayRefundQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.taxi.api.Client.ServiceDriverUserClient;
-import com.taxi.api.Client.ServiceSsePushClient;
+import com.taxi.api.Client.ServiceWsPushClient;
 import com.taxi.api.dto.OrderInfo;
 import com.taxi.api.request.AlipayRefundRequest;
 import com.taxi.api.request.PushRequest;
@@ -52,7 +52,7 @@ public class ApiPayController {
     private ServiceDriverUserClient serviceDriverUserClient;
 
     @Autowired
-    private ServiceSsePushClient serviceSsePushClient;
+    private ServiceWsPushClient serviceWsPushClient;
 
     @Value("${alipay.app-id:CHANGE_ME}")
     private String alipayAppId;
@@ -75,7 +75,7 @@ public class ApiPayController {
     @ApiOperation("支付")
     @GetMapping("/pay")
     public String pay(String subject, String outTradeNo, String totalAmount) throws AlipayApiException {
-        log.error("开始调用支付宝接口--subject:" + subject + "--outTradeNo:" + outTradeNo + "--totalAmount:" + totalAmount);
+        log.info("开始调用支付宝接口 subject={} outTradeNo={} totalAmount={}", subject, outTradeNo, totalAmount);
         AlipayClient alipayClient = new DefaultAlipayClient(getAlipayConfig());
 
         AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest();
@@ -245,7 +245,7 @@ public class ApiPayController {
                     .message("支付成功");
             pushRequest.setContent(WsMessageUtils.payInfo(result));
             try {
-                serviceSsePushClient.push(pushRequest);
+                serviceWsPushClient.push(pushRequest);
             } catch (Exception e) {
                 log.error("支付成功消息推送异常");
                 throw new RuntimeException(e);

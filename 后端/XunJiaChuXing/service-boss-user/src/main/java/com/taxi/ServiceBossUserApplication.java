@@ -1,7 +1,6 @@
 package com.taxi;
 
 import com.taxi.api.config.OpenfeignConfig;
-import com.taxi.config.bossUser;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.taxi.api.Client.ServiceDriverUserClient;
 import com.taxi.api.Client.ServiceMapClient;
-import com.taxi.api.Client.ServiceSsePushClient;
+import com.taxi.api.Client.ServiceWsPushClient;
 import com.taxi.api.dto.OrderInfo;
 import com.taxi.api.request.PushRequest;
 import com.taxi.api.response.AroundsearchResponse;
@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -39,7 +40,7 @@ public class DispatchService {
     @Autowired
     private ServiceDriverUserClient serviceDriverUserClient;
     @Autowired
-    private ServiceSsePushClient serviceSsePushClient;
+    private ServiceWsPushClient serviceWsPushClient;
     @Autowired
     private ServiceMapClient serviceMapClient;
     @Autowired
@@ -77,7 +78,7 @@ public class DispatchService {
             return Result.fail(ResultCodeEnum.ORDER_CANCEL_ERROR, "订单已取消");
         }
         if (!Boolean.TRUE.equals(booleanResult.getData())) {
-            log.error("未找到司机，修改订单状态为无效");
+            log.warn("未找到司机，修改订单状态为无效 orderId={}", orderInfo.getId());
             orderInfo.setOrderStatus(OrderConstants.ORDER_INVALID);
             orderInfoMapper.updateById(orderInfo);
             JSONObject passengerContent = new JSONObject();
@@ -88,7 +89,7 @@ public class DispatchService {
             passengerPushRequest.setUserId(orderInfo.getPassengerId());
             passengerPushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
             passengerPushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
-            serviceSsePushClient.push(passengerPushRequest);
+            serviceWsPushClient.push(passengerPushRequest);
             return Result.fail(ResultCodeEnum.DISPATCH_FAILED);
         }
         return Result.fail(ResultCodeEnum.DISPATCH_FAILED);
@@ -131,7 +132,7 @@ public class DispatchService {
                     String vehicleNo = terminalResponse.getVehicleNo();
                     Result<OrderDriverResponse> availableDriver = serviceDriverUserClient.getAvailableDriver(vehicleNo);
                     if (availableDriver.isOk()) {
-                        log.error("找到了正在出车的司机,车牌号为-" + vehicleNo);
+                        log.info("找到出车司机 vehicleNo={}", vehicleNo);
                         OrderDriverResponse orderDriverResponse = availableDriver.getData();
                         if (orderDriverResponse == null) {
                             continue;
@@ -145,11 +146,17 @@ public class DispatchService {
                             continue;
                         }
 
-                        String lockKey = (driverId + "").intern();
+                        // 业务前缀 + 司机 ID；tryLock 仅 wait、不设 lease → Redisson 看门狗续期（对齐原 lock.lock）
+                        String lockKey = "xunjia:dispatch:driver:" + driverId;
                         RLock lock = redissonClient.getLock(lockKey);
-                        lock.lock();
+                        boolean locked = false;
                         try {
-                            if (isDriverOrderGoingon(driverId) > 0) {
+                            locked = lock.tryLock(2, TimeUnit.SECONDS);
+                            if (!locked) {
+                                log.warn("未抢到派单锁，跳过司机 driverId={}", driverId);
+                                continue;
+                            }
+                            if (isDriverOrderGoingOn(driverId) > 0) {
                                 log.warn("司机{}已有进行中订单，跳过", driverId);
                                 continue;
                             }
@@ -180,7 +187,7 @@ public class DispatchService {
                             pushRequest.setUserId(driverId);
                             pushRequest.setIdentity(IdentityConstant.DRIVER_IDENTITY);
                             pushRequest.setContent(WsMessageUtils.orderDispatch(driverContent));
-                            serviceSsePushClient.push(pushRequest);
+                            serviceWsPushClient.push(pushRequest);
 
                             JSONObject passengerContent = new JSONObject();
                             passengerContent.put("orderId", orderInfo.getId());
@@ -190,9 +197,15 @@ public class DispatchService {
                             passengerPushRequest.setUserId(orderInfo.getPassengerId());
                             passengerPushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
                             passengerPushRequest.setContent(WsMessageUtils.orderDispatch(passengerContent));
-                            serviceSsePushClient.push(passengerPushRequest);
+                            serviceWsPushClient.push(passengerPushRequest);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            log.warn("获取派单锁被中断 driverId={}", driverId, e);
+                            continue;
                         } finally {
-                            lock.unlock();
+                            if (locked && lock.isHeldByCurrentThread()) {
+                                lock.unlock();
+                            }
                         }
                         return Result.ok(true).message("success");
                     }
@@ -214,7 +227,7 @@ public class DispatchService {
      * 含：接单～行程中～下车未付(2～6)。
      * 不含：已发起收款(7)——收款后与司机无关，不应耽误接下一单；支付完成(8)/取消(9)同理。
      */
-    private Long isDriverOrderGoingon(Long driverId) {
+    private Long isDriverOrderGoingOn(Long driverId) {
         QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("driver_id", driverId);
         queryWrapper.and(wrapper -> wrapper.eq("order_status", OrderConstants.DRIVER_RECEIVE_ORDER)

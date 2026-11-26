@@ -39,7 +39,7 @@ public class MapDicDistrictClient {
         url.append("&");
         url.append("key="+key);
 
-        log.error("地区字典请求url："+ url.toString() );
+        log.debug("地区字典请求url：{}", url);
         ResponseEntity<String> forEntity = restTemplate.getForEntity(url.toString(), String.class);
         String dicDistrict = forEntity.getBody();
         return parseDistrictEntity(dicDistrict);
@@ -231,7 +231,7 @@ public class MapDicDistrictClient {
         url.append("&");
         url.append("key="+key);
 
-        log.error("省区地区字典请求url："+ url.toString() );
+        log.debug("省区地区字典请求url：{}", url);
         ResponseEntity<String> forEntity = restTemplate.getForEntity(url.toString(), String.class);
         String dicDistrict = forEntity.getBody();
         return Result.ok(dicDistrict);

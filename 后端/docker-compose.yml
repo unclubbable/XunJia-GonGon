@@ -10,9 +10,9 @@ services:
     ports:
       - "7071:7071"
     command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/gateweb-1.0-SNAPSHOT.jar &>> /opt/log/gateweb.log"]
-  bossUser-service:
+  xunjia-boss-user:
     image: centos-java:1.0
-    container_name: bossUser-service
+    container_name: xunjia-boss-user
     restart: always
     privileged: true
     volumes:
@@ -21,9 +21,9 @@ services:
     ports:
       - "8089:8089"
     command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-boss-user-1.0-SNAPSHOT.jar &>> /opt/log/boss-user.log"]
-  driverUser-service:
+  xunjia-driver-user:
     image: centos-java:1.0
-    container_name: driverUser-service
+    container_name: xunjia-driver-user
     restart: always
     privileged: true
     volumes:
@@ -32,9 +32,9 @@ services:
     ports:
       - "8086:8086"
     command: ["/bin/sh", "-c", "/opt/jdk-17/bin/java -jar /opt/jar/service-driver-user-1.0-SNAPSHOT.jar &>> /opt/log/driver-user.log"]
-  passengerUser-service:
+  xunjia-passenger-user:
     image: centos-java:1.0
-    container_name: passengerUser-service
+    container_name: xunjia-passenger-user
     environment:
       - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID}
       - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET}

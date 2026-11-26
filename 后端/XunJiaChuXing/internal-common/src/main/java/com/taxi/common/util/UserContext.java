@@ -1,6 +1,6 @@
 package com.taxi.common.util;
 
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 
 public class UserContext {
     private static final ThreadLocal<TokenResult> tl = new ThreadLocal<>();

@@ -1,6 +1,6 @@
 package com.taxi.price.controller;
 
-import com.taxi.api.request.ForecastPriceDOT;
+import com.taxi.api.request.ForecastPriceDTO;
 import com.taxi.api.result.Result;
 import com.taxi.price.service.PriceService;
 import io.swagger.annotations.ApiOperation;
@@ -18,8 +18,8 @@ public class ForecastPriceController {
 
     @ApiOperation("计算预估价格")
     @PostMapping("/forecast-price")
-    public Result forecastPrice(@RequestBody ForecastPriceDOT forecastPriceDOT){
-        return forecastPriceService.forecastPrice(forecastPriceDOT);
+    public Result forecastPrice(@RequestBody ForecastPriceDTO forecastPriceDTO){
+        return forecastPriceService.forecastPrice(forecastPriceDTO);
     }
 
     @ApiOperation("计算实际价格")

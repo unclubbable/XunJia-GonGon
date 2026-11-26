@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.taxi.api.Client.ServiceMapClient;
 import com.taxi.api.dto.PriceRule;
 import com.taxi.price.mapper.PriceRuleMapper;
-import com.taxi.api.request.ForecastPriceDOT;
+import com.taxi.api.request.ForecastPriceDTO;
 import com.taxi.api.response.DirectionResponse;
 import com.taxi.api.response.ForecastPriceResponse;
 import com.taxi.api.result.Result;
@@ -27,14 +27,14 @@ public class PriceService {
     @Autowired
     private PriceRuleMapper priceRuleMapper;
 
-    public Result forecastPrice(ForecastPriceDOT forecastPriceDOT) {
+    public Result forecastPrice(ForecastPriceDTO forecastPriceDTO) {
         DirectionResponse direction = FeignResultUtils.checkAndGet(
-                serviceMapClient.driving(forecastPriceDOT), ResultCodeEnum.MAP_DISTRICT_ERROR);
+                serviceMapClient.driving(forecastPriceDTO), ResultCodeEnum.MAP_DISTRICT_ERROR);
         Integer distance = direction.getDistance();
         Integer duration = direction.getDuration();
 
-        String cityCode = forecastPriceDOT.getCityCode();
-        String vehicleType = forecastPriceDOT.getVehicleType();
+        String cityCode = forecastPriceDTO.getCityCode();
+        String vehicleType = forecastPriceDTO.getVehicleType();
 
         QueryWrapper<PriceRule> wrapper = new QueryWrapper<>();
         wrapper.eq("city_code", cityCode);

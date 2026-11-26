@@ -1,7 +1,7 @@
 package com.taxi.api.config;
 
 import cn.hutool.json.JSONUtil;
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 import com.taxi.common.util.UserContext;
 import feign.Logger;
 import feign.RequestInterceptor;

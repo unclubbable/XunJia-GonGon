@@ -4,7 +4,7 @@ import lombok.Data;
 
 
 @Data
-public class ForecastPriceDOT {
+public class ForecastPriceDTO {
     //城市编码
     private String cityCode;
     //车辆类型

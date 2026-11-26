@@ -1,7 +1,7 @@
 package com.taxi.websocket.session;
 
 import com.taxi.api.util.WsMessageUtils;
-import com.taxi.common.util.SsePrefixUtils;
+import com.taxi.common.util.WsSessionKeyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +23,7 @@ public class WebSocketSessionHub {
     private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
 
     public String key(Long userId, String identity) {
-        return SsePrefixUtils.generatorSseKey(userId, identity);
+        return WsSessionKeyUtils.sessionKey(userId, identity);
     }
 
     /**
@@ -99,7 +99,7 @@ public class WebSocketSessionHub {
         if (identity == null || identity.isEmpty()) {
             return "identity 为空";
         }
-        String suffix = SsePrefixUtils.sperator + identity;
+        String suffix = WsSessionKeyUtils.SEPARATOR + identity;
         List<Map.Entry<String, Session>> targets = new ArrayList<>();
         for (Map.Entry<String, Session> e : sessions.entrySet()) {
             if (e.getKey() != null && e.getKey().endsWith(suffix)) {

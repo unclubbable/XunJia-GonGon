@@ -1,7 +1,7 @@
 package com.taxi.passengerUser.service;
 
 import com.taxi.common.constant.TokenConstants;
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 import com.taxi.api.response.TokenResponse;
 import com.taxi.api.result.Result;
 import com.taxi.api.result.ResultCodeEnum;

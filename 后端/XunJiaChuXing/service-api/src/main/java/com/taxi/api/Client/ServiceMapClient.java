@@ -1,6 +1,6 @@
 package com.taxi.api.Client;
 
-import com.taxi.api.request.ForecastPriceDOT;
+import com.taxi.api.request.ForecastPriceDTO;
 import com.taxi.api.response.*;
 import com.taxi.api.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -45,6 +45,6 @@ public interface ServiceMapClient {
     public Result<TerminalSearchResponse> searchTerminal(@RequestParam String keyword);
 
     @PostMapping("/direction/driving")
-    public Result<DirectionResponse> driving(@RequestBody ForecastPriceDOT forecastPriceDOT);
+    public Result<DirectionResponse> driving(@RequestBody ForecastPriceDTO forecastPriceDTO);
 }
 

@@ -58,9 +58,9 @@ public class PointClient {
                 url.append("%7D");
             }
             url.append("%5D");
-            log.error("轨迹点上传请求url："+ url.toString());
+            log.debug("轨迹点上传请求url：{}", url);
             ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(URI.create(url.toString()), null, String.class);
-            log.error("轨迹点上传结果："+ stringResponseEntity.getBody());
+            log.debug("轨迹点上传结果：{}", stringResponseEntity.getBody());
             JSONObject result = JSONObject.fromObject(stringResponseEntity.getBody());
             return Result.ok(result);
         } catch (RestClientException e) {

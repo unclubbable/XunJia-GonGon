@@ -1,4 +1,4 @@
-package com.taxi.common.ThreadLoad;
+package com.taxi.common.model;
 
 import lombok.Data;
 

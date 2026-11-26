@@ -16,7 +16,7 @@ import com.taxi.order.rabbitMQ.RabbitMQConfig;
 import com.taxi.order.rabbitMQ.RabbitMQProducer;
 import com.taxi.order.mapper.OrderInfoMapper;
 import com.taxi.api.constant.TrackSimplifyType;
-import com.taxi.api.request.ForecastPriceDOT;
+import com.taxi.api.request.ForecastPriceDTO;
 import com.taxi.api.request.OrderRequest;
 import com.taxi.api.request.PriceRuleIsNewRequest;
 import com.taxi.api.response.DirectionResponse;
@@ -28,7 +28,7 @@ import com.taxi.api.result.ResultCodeEnum;
 import com.taxi.api.util.FeignResultUtils;
 import com.taxi.api.util.OrderValidator;
 import com.taxi.api.util.WsMessageUtils;
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 import com.taxi.order.service.IOrderInfoService;
 import com.taxi.order.service.OrderTripService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -82,7 +82,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     private ServiceOrderClient serviceOrderClient;
 
     @Autowired
-    private ServiceSsePushClient serviceSsePushClient;
+    private ServiceWsPushClient serviceWsPushClient;
 
     @Autowired
     private OrderTripService orderTripService;
@@ -96,7 +96,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result add(OrderRequest orderRequest) {
-        log.error("下单请求参数：" + orderRequest);
+        log.info("下单请求参数：{}", orderRequest);
         if (UserContext.getUser().getIdentity().equals(IdentityConstant.PASSENGER_IDENTITY)) {
             orderRequest.setPassengerPhone(UserContext.getUser().getPhone());
             PassengerUser user = FeignResultUtils.checkAndGet(
@@ -123,7 +123,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             return Result.fail(ResultCodeEnum.PRICE_RULE_OUTDATED);
         }
 
-        if (isPassengerOrderGoingon(orderRequest.getPassengerId()) > 0) {
+        if (isPassengerOrderGoingOn(orderRequest.getPassengerId()) > 0) {
             return Result.fail(ResultCodeEnum.ORDER_GOING_ON);
         }
 
@@ -163,7 +163,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     
-    private Long isPassengerOrderGoingon(Long passengerId) {
+    private Long isPassengerOrderGoingOn(Long passengerId) {
         // 判断有正在进行的订单不允许下单
         QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("passenger_id", passengerId);
@@ -230,7 +230,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
         pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
         return Result.ok(orderInfo);
     }
 
@@ -258,7 +258,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
         pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
 
 
         return Result.ok(orderInfo);
@@ -291,7 +291,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
         pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
         log.info("通知乘客上车信息: {}", JSONUtil.toJsonStr(pushRequest));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
 
 
         return Result.ok(orderInfo);
@@ -325,13 +325,13 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         } else {
             log.warn("高德轨迹为空，使用起终点路线预估兜底, orderId={}, message={}",
                     orderInfo.getId(), trsearchResult != null ? trsearchResult.getMessage() : "无响应");
-            ForecastPriceDOT forecastPriceDOT = new ForecastPriceDOT();
-            forecastPriceDOT.setDepLongitude(orderInfo.getDepLongitude());
-            forecastPriceDOT.setDepLatitude(orderInfo.getDepLatitude());
-            forecastPriceDOT.setDestLongitude(orderInfo.getDestLongitude());
-            forecastPriceDOT.setDestLatitude(orderInfo.getDestLatitude());
+            ForecastPriceDTO forecastPriceDTO = new ForecastPriceDTO();
+            forecastPriceDTO.setDepLongitude(orderInfo.getDepLongitude());
+            forecastPriceDTO.setDepLatitude(orderInfo.getDepLatitude());
+            forecastPriceDTO.setDestLongitude(orderInfo.getDestLongitude());
+            forecastPriceDTO.setDestLatitude(orderInfo.getDestLatitude());
             DirectionResponse direction = FeignResultUtils.checkAndGet(
-                    serviceMapClient.driving(forecastPriceDOT), ResultCodeEnum.MAP_DISTRICT_ERROR);
+                    serviceMapClient.driving(forecastPriceDTO), ResultCodeEnum.MAP_DISTRICT_ERROR);
             driveMile = direction.getDistance().longValue();
             driveTime = direction.getDuration().longValue() / 60L;
         }
@@ -359,7 +359,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
         pushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
 
 
         return Result.ok(orderInfo);
@@ -458,10 +458,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         result.setCode(OrderConstants.RESULT_CODE_ORDER_CANCEL)
                 .setMessage("订单取消成功");
         pushRequest.setContent(WsMessageUtils.orderStatus(result));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
         pushRequest.setUserId(orderInfo.getDriverId());
         pushRequest.setIdentity(IdentityConstant.DRIVER_IDENTITY);
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
 
         return Result.ok(true).message("订单取消成功");
     }
@@ -499,7 +499,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         pushRequest.setUserId(passengerId);
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
         pushRequest.setContent(WsMessageUtils.payInfo(passengerContent));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
         //推送订单消息给司机
 
 

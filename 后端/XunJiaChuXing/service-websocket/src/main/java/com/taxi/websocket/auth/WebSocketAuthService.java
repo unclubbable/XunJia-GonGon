@@ -5,7 +5,7 @@ import com.taxi.api.Client.ServicePassengerUserClient;
 import com.taxi.api.dto.DriverUser;
 import com.taxi.api.dto.PassengerUser;
 import com.taxi.api.result.Result;
-import com.taxi.common.ThreadLoad.TokenResult;
+import com.taxi.common.model.TokenResult;
 import com.taxi.common.constant.IdentityConstant;
 import com.taxi.common.constant.TokenConstants;
 import com.taxi.common.util.JwtUtils;

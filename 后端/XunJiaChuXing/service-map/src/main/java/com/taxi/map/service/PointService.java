@@ -2,7 +2,7 @@ package com.taxi.map.service;
 
 import com.taxi.api.Client.ServiceDriverUserClient;
 import com.taxi.api.Client.ServiceOrderClient;
-import com.taxi.api.Client.ServiceSsePushClient;
+import com.taxi.api.Client.ServiceWsPushClient;
 import com.taxi.api.dto.Car;
 import com.taxi.api.dto.OrderInfo;
 import com.taxi.api.request.ApiDriverPointRequest;
@@ -27,7 +27,7 @@ public class PointService {
     @Autowired
     private ServiceOrderClient serviceOrderInfoClient;
     @Autowired
-    private ServiceSsePushClient serviceSsePushClient;
+    private ServiceWsPushClient serviceWsPushClient;
     @Autowired
     private PointClient pointClient;
 
@@ -68,7 +68,7 @@ public class PointService {
         pushRequest.setUserId(orderInfo.getPassengerId());
         pushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
         pushRequest.setContent(WsMessageUtils.locationUpdate(passengerContent));
-        serviceSsePushClient.push(pushRequest);
+        serviceWsPushClient.push(pushRequest);
 
         return upload;
     }

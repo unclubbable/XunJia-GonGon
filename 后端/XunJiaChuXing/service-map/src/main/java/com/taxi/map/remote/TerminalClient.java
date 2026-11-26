@@ -53,7 +53,7 @@ public class TerminalClient {
         url.append("&");
         url.append("desc=" + desc);
 
-        log.error("终端添加请求url："+ url.toString() );
+        log.debug("终端添加请求url：{}", url);
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url.toString(), null, String.class);
         String body = stringResponseEntity.getBody();
         JSONObject result = JSONObject.fromObject(body);
