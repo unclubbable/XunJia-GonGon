@@ -12,6 +12,7 @@ import com.xunjia.api.request.PushRequest;
 import com.xunjia.common.constant.IdentityConstant;
 import com.xunjia.common.constant.OrderConstants;
 import com.xunjia.api.dto.*;
+import com.xunjia.order.rabbitMQ.DispatchMessage;
 import com.xunjia.order.rabbitMQ.RabbitMQConfig;
 import com.xunjia.order.rabbitMQ.RabbitMQProducer;
 import com.xunjia.order.mapper.OrderInfoMapper;
@@ -136,8 +137,12 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            // MQ 消息仍带扁平行程字段，供派单直接使用起终点，无需再查库
-            String orderInfoJson = objectMapper.writeValueAsString(orderInfo);
+            // 首轮派单消息：带快照 + retryCount=0；暂无司机时由 DispatchService 投递 TTL 延迟重试
+            DispatchMessage dispatchMessage = new DispatchMessage();
+            dispatchMessage.setOrderId(orderInfo.getId());
+            dispatchMessage.setRetryCount(0);
+            dispatchMessage.setOrderSnapshot(orderInfo);
+            String orderInfoJson = objectMapper.writeValueAsString(dispatchMessage);
             rabbitMQProducer.sendMessage(RabbitMQConfig.TRAVEL_TOPIC, orderInfoJson);
         } catch (Exception e) {
             log.error("订单消息发送失败, orderId={}", orderInfo.getId(), e);

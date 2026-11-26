@@ -16,7 +16,11 @@ import com.xunjia.api.util.FeignResultUtils;
 import com.xunjia.api.util.WsMessageUtils;
 import com.xunjia.common.constant.IdentityConstant;
 import com.xunjia.common.constant.OrderConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xunjia.order.mapper.OrderInfoMapper;
+import com.xunjia.order.rabbitMQ.DispatchMessage;
+import com.xunjia.order.rabbitMQ.RabbitMQConfig;
+import com.xunjia.order.rabbitMQ.RabbitMQProducer;
 import com.xunjia.order.service.OrderTripService;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
@@ -45,58 +49,109 @@ public class DispatchService {
     private ServiceMapClient serviceMapClient;
     @Autowired
     private OrderTripService orderTripService;
+    @Autowired
+    private RabbitMQProducer rabbitMQProducer;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * 订单匹配
+     * MQ 消费入口：单轮搜车；暂无司机则投递 TTL 延迟消息，满次仍失败才置无效。
+     * 已取消/已处理：空跑返回，不覆盖状态。
      */
-    public Result disPatch(OrderInfo orderInfo) {
-        OrderInfo current = orderInfoMapper.selectById(orderInfo.getId());
+    public Result handleDispatch(Long orderId, int retryCount, OrderInfo snapshot) {
+        if (orderId == null) {
+            return Result.fail().message("orderId 为空");
+        }
+        OrderInfo current = orderInfoMapper.selectById(orderId);
         if (current == null || current.getOrderStatus() != OrderConstants.ORDER_START) {
+            log.info("派单跳过：订单已处理或不存在 orderId={} status={}",
+                    orderId, current == null ? null : current.getOrderStatus());
             return Result.ok().message("订单已处理");
         }
-        Result<Boolean> booleanResult = dispatchRealTimeOrder(orderInfo);
-        for (int i = 0; i < 5; i++) {
-            if (Boolean.TRUE.equals(booleanResult.getData())) {
-                break;
-            }
-            try {
-                Thread.sleep(20 * 1000);
-                OrderInfo data = orderInfoMapper.selectById(orderInfo.getId());
-                if (data == null || data.getOrderStatus() != OrderConstants.ORDER_START) {
-                    break;
-                }
-                booleanResult = dispatchRealTimeOrder(orderInfo);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.error("派单等待被中断", e);
-            }
+
+        OrderInfo orderInfo = snapshot != null ? snapshot : current;
+        orderInfo.setId(orderId);
+        // 以库状态为准；快照补行程字段
+        if (orderInfo.getDepLongitude() == null || orderInfo.getDepLatitude() == null) {
+            orderTripService.mergeTrip(orderInfo);
         }
+
+        Result<Boolean> booleanResult = dispatchRealTimeOrder(orderInfo);
         if (Boolean.TRUE.equals(booleanResult.getData()) && "success".equals(booleanResult.getMessage())) {
-            return Result.ok("派单成功").message(booleanResult.getMessage());
+            return Result.ok("派单成功");
         }
         if (Boolean.TRUE.equals(booleanResult.getData()) && "fail".equals(booleanResult.getMessage())) {
             return Result.fail(ResultCodeEnum.ORDER_CANCEL_ERROR, "订单已取消");
         }
-        if (!Boolean.TRUE.equals(booleanResult.getData())) {
-            log.warn("未找到司机，修改订单状态为无效 orderId={}", orderInfo.getId());
-            orderInfo.setOrderStatus(OrderConstants.ORDER_INVALID);
-            orderInfoMapper.updateById(orderInfo);
-            JSONObject passengerContent = new JSONObject();
-            passengerContent.put("orderId", orderInfo.getId());
-            passengerContent.put("driverId", orderInfo.getDriverId());
 
-            PushRequest passengerPushRequest = new PushRequest();
-            passengerPushRequest.setUserId(orderInfo.getPassengerId());
-            passengerPushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
-            passengerPushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
-            serviceWsPushClient.push(passengerPushRequest);
-            return Result.fail(ResultCodeEnum.DISPATCH_FAILED);
+        // 暂无司机：再查一次库，避免取消后仍投递延迟或写成无效
+        OrderInfo latest = orderInfoMapper.selectById(orderId);
+        if (latest == null || latest.getOrderStatus() != OrderConstants.ORDER_START) {
+            log.info("搜车未果但订单已非待接单，停止重试 orderId={} status={}",
+                    orderId, latest == null ? null : latest.getOrderStatus());
+            return Result.ok().message("订单已处理");
         }
+
+        int nextRetry = retryCount + 1;
+        if (nextRetry < RabbitMQConfig.MAX_DISPATCH_ATTEMPTS) {
+            scheduleRetry(orderId, nextRetry, latest);
+            return Result.ok().message("已安排延迟重试");
+        }
+
+        markDispatchFailed(latest);
         return Result.fail(ResultCodeEnum.DISPATCH_FAILED);
+    }
+
+    /** 兼容旧调用名 */
+    public Result disPatch(OrderInfo orderInfo) {
+        if (orderInfo == null || orderInfo.getId() == null) {
+            return Result.fail().message("订单为空");
+        }
+        return handleDispatch(orderInfo.getId(), 0, orderInfo);
+    }
+
+    private void scheduleRetry(Long orderId, int retryCount, OrderInfo latest) {
+        try {
+            DispatchMessage msg = new DispatchMessage();
+            msg.setOrderId(orderId);
+            msg.setRetryCount(retryCount);
+            msg.setOrderSnapshot(latest);
+            String json = objectMapper.writeValueAsString(msg);
+            rabbitMQProducer.sendDispatchRetryDelay(json);
+            log.info("派单延迟重试已投递 orderId={} retryCount={} delayMs={}",
+                    orderId, retryCount, RabbitMQConfig.DISPATCH_RETRY_DELAY_MS);
+        } catch (Exception e) {
+            log.error("投递派单延迟消息失败 orderId={} retryCount={}", orderId, retryCount, e);
+            throw new RuntimeException("投递派单延迟消息失败", e);
+        }
+    }
+
+    private void markDispatchFailed(OrderInfo orderInfo) {
+        // 再次确认仍为待接单，避免覆盖乘客取消
+        OrderInfo latest = orderInfoMapper.selectById(orderInfo.getId());
+        if (latest == null || latest.getOrderStatus() != OrderConstants.ORDER_START) {
+            log.info("置无效前订单已变更，跳过 orderId={}", orderInfo.getId());
+            return;
+        }
+        log.warn("未找到司机，修改订单状态为无效 orderId={}", latest.getId());
+        latest.setOrderStatus(OrderConstants.ORDER_INVALID);
+        orderInfoMapper.updateById(latest);
+
+        JSONObject passengerContent = new JSONObject();
+        passengerContent.put("orderId", latest.getId());
+        passengerContent.put("driverId", latest.getDriverId());
+        PushRequest passengerPushRequest = new PushRequest();
+        passengerPushRequest.setUserId(latest.getPassengerId());
+        passengerPushRequest.setIdentity(IdentityConstant.PASSENGER_IDENTITY);
+        passengerPushRequest.setContent(WsMessageUtils.orderStatus(passengerContent));
+        serviceWsPushClient.push(passengerPushRequest);
     }
 
     public Result<Boolean> dispatchRealTimeOrder(OrderInfo orderInfo) {
         OrderInfo orderInfoNow = orderInfoMapper.selectById(orderInfo.getId());
+        if (orderInfoNow == null) {
+            return Result.ok(true).message("fail");
+        }
         if (orderInfoNow.getOrderStatus() == OrderConstants.ORDER_CANCEL ||
                 orderInfoNow.getOrderStatus() == OrderConstants.ORDER_INVALID) {
             return Result.ok(true).message("fail");

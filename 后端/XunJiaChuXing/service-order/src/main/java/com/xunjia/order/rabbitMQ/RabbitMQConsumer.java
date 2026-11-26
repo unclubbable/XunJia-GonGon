@@ -1,5 +1,6 @@
 package com.xunjia.order.rabbitMQ;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.xunjia.api.dto.OrderInfo;
@@ -26,7 +27,9 @@ public class RabbitMQConsumer {
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
 
-    private int coreSize = 2 * Runtime.getRuntime().availableProcessors();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final int coreSize = 2 * Runtime.getRuntime().availableProcessors();
     private final ExecutorService executorService = new ThreadPoolExecutor(
             coreSize,
             coreSize,
@@ -37,14 +40,23 @@ public class RabbitMQConsumer {
     );
 
     @RabbitListener(queues = RabbitMQConfig.TRAVEL_TOPIC)
-    public void consumer(String messages, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+    public void consumeTravel(String messages, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        handleAsync(messages, channel, deliveryTag, true);
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.TRAVEL_RETRY)
+    public void consumeTravelRetry(String messages, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        handleAsync(messages, channel, deliveryTag, false);
+    }
+
+    private void handleAsync(String messages, Channel channel, long deliveryTag, boolean firstAttemptDefault) {
         executorService.execute(() -> {
             try {
-                log.info("收到订单：{}", messages);
-                consumeMsg(messages);
+                log.info("收到派单消息 firstQueue={} body={}", firstAttemptDefault, messages);
+                consumeDispatch(messages, firstAttemptDefault);
                 channel.basicAck(deliveryTag, false);
             } catch (Exception e) {
-                log.error("消费失败", e);
+                log.error("派单消费失败", e);
                 try {
                     channel.basicNack(deliveryTag, false, false);
                     rabbitMQProducer.sendMessage(RabbitMQConfig.ERR_ORDER_HANDLE_TOPIC, messages);
@@ -55,15 +67,33 @@ public class RabbitMQConsumer {
         });
     }
 
-    public void consumeMsg(String msg) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            OrderInfo orderInfo = objectMapper.readValue(msg, OrderInfo.class);
-            log.info("开始处理订单：{}", orderInfo);
-            dispatchService.disPatch(orderInfo);
-        } catch (Exception e) {
-            log.error("消费失败", e);
-            rabbitMQProducer.sendMessage(RabbitMQConfig.ERR_ORDER_HANDLE_TOPIC, msg);
+    /**
+     * 兼容：旧消息为纯 OrderInfo JSON；新消息为 {@link DispatchMessage}。
+     */
+    void consumeDispatch(String msg, boolean firstAttemptDefault) throws Exception {
+        JsonNode root = objectMapper.readTree(msg);
+        Long orderId;
+        int retryCount;
+        OrderInfo snapshot = null;
+
+        if (root.has("orderId") || root.has("retryCount") || root.has("orderSnapshot")) {
+            DispatchMessage dm = objectMapper.treeToValue(root, DispatchMessage.class);
+            orderId = dm.getOrderId();
+            retryCount = dm.getRetryCount();
+            snapshot = dm.getOrderSnapshot();
+            if (orderId == null && snapshot != null) {
+                orderId = snapshot.getId();
+            }
+        } else {
+            // 历史 travel-topic：整段 OrderInfo
+            snapshot = objectMapper.treeToValue(root, OrderInfo.class);
+            orderId = snapshot.getId();
+            retryCount = firstAttemptDefault ? 0 : 0;
         }
+
+        if (orderId == null) {
+            throw new IllegalArgumentException("派单消息缺少 orderId");
+        }
+        dispatchService.handleDispatch(orderId, retryCount, snapshot);
     }
 }
