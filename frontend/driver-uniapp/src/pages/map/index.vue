@@ -15,7 +15,7 @@
 import BWebSocket from '../../component/BWebSocket.vue'
 import BMap from '../../component/BMap.vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { ApiGetCityList } from '../../api/city.js'
+import { ApiGetCityList, ApiRegeoCity, asText } from '../../api/city.js'
 import { useStore } from 'vuex'
 
 const mapRef = ref(null)
@@ -62,26 +62,84 @@ function handleReceiveOrder(arg) {
 	uni.redirectTo({ url: `/pages/order/detail/index?orderId=${orderId}` })
 }
 
+function matchCityByCode(list, cityCode) {
+	const code = asText(cityCode)
+	if (!list || !code) return null
+	return list.find((i) => {
+		const c = i.citycode
+		if (Array.isArray(c)) return c.map(String).includes(code)
+		return String(c) === code
+	}) || null
+}
+
+/** 原生 geocode 无市名时，用 Web 逆地理补全 */
+async function resolveCityByLngLat(longitude, latitude, nativeAddress, cityList) {
+	const addr = nativeAddress || {}
+	let name = asText(addr.city) || asText(addr.province)
+	let cityCode = asText(addr.cityCode || addr.citycode)
+	let adcode = ''
+	let matched = matchCityByCode(cityList, cityCode)
+	if (matched) {
+		adcode = matched.adcode
+		if (!name) name = asText(matched.name)
+	}
+	if (!name || !cityCode) {
+		const { error, result: regeo } = await ApiRegeoCity(longitude, latitude)
+		if (!error && regeo) {
+			name = name || asText(regeo.name)
+			cityCode = cityCode || asText(regeo.cityCode)
+			adcode = adcode || asText(regeo.adcode)
+			matched = matchCityByCode(cityList, cityCode) || matched
+			if (matched) {
+				adcode = matched.adcode || adcode
+				name = name || asText(matched.name)
+			}
+		}
+	}
+	return {
+		name: name || asText(city.value?.name) || '定位中',
+		cityCode: cityCode || city.value?.cityCode || city.value?.citycode || '',
+		adcode: adcode || (matched && matched.adcode) || city.value?.adcode
+	}
+}
+
 async function getLocation() {
-	const { result } = await ApiGetCityList()
+	const { result: cityList } = await ApiGetCityList()
 	uni.getLocation({
 		type: 'gcj02',
 		geocode: true,
-		success(res) {
+		async success(res) {
 			const { address, longitude, latitude, accuracy } = res
-			const matched = result && result.find(i => {
-				const code = i.citycode
-				if (Array.isArray(code)) return code.includes(address.cityCode)
-				return String(code) === String(address.cityCode)
-			})
-			$store.commit('setCity', {
-				adcode: matched ? matched.adcode : city.value.adcode,
-				cityCode: address.cityCode,
-				name: address.city,
-				center: `${longitude},${latitude}`,
-				accuracy: `${accuracy}`,
-				locationRes: true
-			})
+			try {
+				const resolved = await resolveCityByLngLat(longitude, latitude, address, cityList)
+				$store.commit('setCity', {
+					adcode: resolved.adcode,
+					cityCode: resolved.cityCode,
+					name: resolved.name,
+					center: `${longitude},${latitude}`,
+					accuracy: `${accuracy}`,
+					locationRes: true
+				})
+				// 同步出车用的 point.adcode，避免地图页定位后回首页仍识别失败
+				$store.commit('setPoint', {
+					...($store.state.point || {}),
+					lng: longitude,
+					lat: latitude,
+					name: resolved.name,
+					code: resolved.cityCode,
+					adcode: resolved.adcode,
+					accuracy
+				})
+			} catch (e) {
+				console.error('解析城市失败:', e)
+				$store.commit('setCity', {
+					...(city.value || {}),
+					center: `${longitude},${latitude}`,
+					accuracy: `${accuracy}`,
+					locationRes: true,
+					name: asText(city.value?.name) || '定位中'
+				})
+			}
 			setLocation()
 		},
 		fail(err) {

@@ -84,7 +84,7 @@ import { HandleApiError } from '../../utils';
 import { _FormatDate } from '@gykeji/jsutil';
 import { ShowToast } from '../../utils';
 import { ApiGetWorkStatus, ApiPostUpdateWorkStatus, ApiPostUpdatePoint, ApiGetUserCarInfo } from '../../api/user';
-import { ApiGetCityList } from '../../api/city';
+import { ApiGetCityList, ApiRegeoCity, asText } from '../../api/city';
 
 const $store = useStore();
 let cityListCache = [];
@@ -112,13 +112,34 @@ async function loadCityList() {
 }
 
 function resolveAdcode(cityCode) {
-	if (!cityCode || !cityListCache.length) return '';
+	const code = asText(cityCode);
+	if (!code || !cityListCache.length) return '';
 	const hit = cityListCache.find(i => {
-		const code = i.citycode;
-		if (Array.isArray(code)) return code.includes(cityCode) || code.includes(String(cityCode));
-		return String(code) === String(cityCode);
+		const c = i.citycode;
+		if (Array.isArray(c)) return c.map(String).includes(code);
+		return String(c) === code;
 	});
 	return hit ? hit.adcode : '';
+}
+
+/** 原生 geocode 无 cityCode 时，用 Web 逆地理补全市政区编码 */
+async function enrichPointFromLocation(longitude, latitude, address) {
+	let name = asText(address?.city) || asText(address?.province);
+	let code = asText(address?.cityCode || address?.citycode);
+	let adcode = resolveAdcode(code);
+	if (!code || !adcode) {
+		const { error, result: regeo } = await ApiRegeoCity(longitude, latitude);
+		if (!error && regeo) {
+			name = name || asText(regeo.name);
+			code = code || asText(regeo.cityCode);
+			adcode = adcode || resolveAdcode(code) || asText(regeo.adcode);
+			// regeo.adcode 可能是区县级，出车校验一般用市级；优先城市列表匹配结果
+			if (!adcode && regeo.adcode) {
+				adcode = asText(regeo.adcode);
+			}
+		}
+	}
+	return { name, code, adcode };
 }
 //取消先前通过调用setInterval()设置的重复定时任务
 onUnmounted(() => {
@@ -202,12 +223,17 @@ function updatePoint() {
 				}]
 			});
 			if (!error) {
+				const enriched = await enrichPointFromLocation(
+					result.longitude,
+					result.latitude,
+					result.address
+				);
 				$store.commit('setPoint', {
 					lng: result.longitude,
 					lat: result.latitude,
-					name: result.address?.city,
-					code: result.address?.cityCode,
-					adcode: resolveAdcode(result.address?.cityCode),
+					name: enriched.name,
+					code: enriched.code,
+					adcode: enriched.adcode,
 					accuracy: result.accuracy
 				});
 			}
@@ -241,6 +267,22 @@ async function getUserProgressOrder() {
 //出车状态修改
 async function handleWorkStatus(status) {
 	let adcode = $store.state.point.adcode || resolveAdcode($store.state.point.code);
+	// 出车时若尚未识别城市，再按当前坐标补一次（避免 geocode 空导致误拦）
+	if (status === 1 && !adcode) {
+		const { lng, lat } = $store.state.point || {};
+		if (lng != null && lat != null) {
+			const enriched = await enrichPointFromLocation(lng, lat, null);
+			if (enriched.adcode || enriched.code) {
+				$store.commit('setPoint', {
+					...$store.state.point,
+					name: enriched.name || $store.state.point.name,
+					code: enriched.code || $store.state.point.code,
+					adcode: enriched.adcode || $store.state.point.adcode
+				});
+				adcode = enriched.adcode || resolveAdcode(enriched.code);
+			}
+		}
+	}
 	if (status === 1 && !adcode) {
 		uni.showToast({ title: '定位城市未识别，请稍后重试', icon: 'none' });
 		return;
@@ -251,17 +293,10 @@ async function handleWorkStatus(status) {
 		workStatus: status,
 		address: adcode
 	});
-	console.log($store.state.point);
-	console.log(error);
-	console.log(result);
-	console.log(status);
-	if(result != null && result.code == 0 &&status == 1){
+	if (result != null && result.code == 0 && status == 1) {
 		uni.showToast({ title: '无法出车(请检查是否在运营城市内)', icon: 'none' });
-	}
-	else{
-		if (!HandleApiError(error)   ) {
-			workStatus.value = status;
-		}
+	} else if (!HandleApiError(error)) {
+		workStatus.value = status;
 	}
 }
 //跳转工具方法

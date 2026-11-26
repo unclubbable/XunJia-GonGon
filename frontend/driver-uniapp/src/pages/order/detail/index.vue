@@ -586,7 +586,13 @@ const updatePoint = () => {
 				}]
 			});
 			if (!error) {
-				$store.commit('setPoint', { lng: result.longitude, lat: result.latitude, name: result.city });
+				// 订单中只刷新坐标；城市/adcode 由首页或地图页逆地理维护，避免每 5 秒打 regeo
+				$store.commit('setPoint', {
+					...($store.state.point || {}),
+					lng: result.longitude,
+					lat: result.latitude,
+					accuracy: result.accuracy
+				});
 				mapRef.value?.driverUpdatePosition(result.longitude, result.latitude);
 			}
 			pointTimer = setTimeout(updatePoint, 5000);
