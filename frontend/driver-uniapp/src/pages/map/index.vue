@@ -58,6 +58,8 @@ function updatalocaltion() {
 }
 
 function handleReceiveOrder(arg) {
+	// 取消推送没有 orderId，勿跳详情（否则 URL 变成 orderId=undefined）
+	if (!arg || !arg.orderId || arg.code === 801) return
 	orderId = arg.orderId
 	uni.redirectTo({ url: `/pages/order/detail/index?orderId=${orderId}` })
 }

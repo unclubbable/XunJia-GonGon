@@ -552,24 +552,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         log.debug("orderId:"+orderId);
         OrderDetailInfo orderDetailInfo = new OrderDetailInfo();
         OrderInfo orderInfo = requireOrderWithTrip(orderId);
-        DriverUser driverInfo = FeignResultUtils.checkAndGet(
-                serviceDriverUserClient.getDriverInfo(orderInfo.getDriverId()), ResultCodeEnum.DRIVER_NOT_EXITST);
-        BeanUtils.copyProperties(orderInfo,orderDetailInfo);
-        orderDetailInfo.setDriverSurname(driverInfo.getDriverSurname());
-        orderDetailInfo.setDriverTotalOrders(driverInfo.getTotalOrders());
-        //车辆信息,调用车辆服务
-        Car car = FeignResultUtils.checkAndGet(serviceDriverUserClient.getCar(orderInfo.getCarId()),
-                ResultCodeEnum.CAR_NOT_EXISTS);
-        //车辆颜色
-        orderDetailInfo.setVehicleColor(car.getVehicleColor());
-        //品牌
-        orderDetailInfo.setVehicleBrand(car.getBrand());
-        //车辆型号
-        orderDetailInfo.setVehicleModel(car.getModel());
-        // 乘客信息
-        PassengerUser passengerInfo = FeignResultUtils.checkAndGet(
-                servicePassengerUserClient.getPassengerInfo(orderInfo.getPassengerId()), ResultCodeEnum.USER_NOT_EXISTS);
-        orderDetailInfo.setPassengerSurname(passengerInfo.getPassengerSurname());
+        BeanUtils.copyProperties(orderInfo, orderDetailInfo);
+        // 未派单时 driverId/carId 为空，不能调 Feign（会变成 /get-driver-info/ → 404）
+        if (orderInfo.getDriverId() != null) {
+            DriverUser driverInfo = FeignResultUtils.checkAndGet(
+                    serviceDriverUserClient.getDriverInfo(orderInfo.getDriverId()), ResultCodeEnum.DRIVER_NOT_EXITST);
+            orderDetailInfo.setDriverSurname(driverInfo.getDriverSurname());
+            orderDetailInfo.setDriverTotalOrders(driverInfo.getTotalOrders());
+        }
+        if (orderInfo.getCarId() != null) {
+            Car car = FeignResultUtils.checkAndGet(serviceDriverUserClient.getCar(orderInfo.getCarId()),
+                    ResultCodeEnum.CAR_NOT_EXISTS);
+            orderDetailInfo.setVehicleColor(car.getVehicleColor());
+            orderDetailInfo.setVehicleBrand(car.getBrand());
+            orderDetailInfo.setVehicleModel(car.getModel());
+        }
+        if (orderInfo.getPassengerId() != null) {
+            PassengerUser passengerInfo = FeignResultUtils.checkAndGet(
+                    servicePassengerUserClient.getPassengerInfo(orderInfo.getPassengerId()), ResultCodeEnum.USER_NOT_EXISTS);
+            orderDetailInfo.setPassengerSurname(passengerInfo.getPassengerSurname());
+        }
 
         return Result.ok(orderDetailInfo);
     }

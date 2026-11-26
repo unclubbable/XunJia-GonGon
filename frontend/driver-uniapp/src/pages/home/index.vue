@@ -153,8 +153,9 @@ onUnmounted(() => {
 	}
 });
 
-//websockt自动收订单
+// WebSocket：仅派单消息带 orderId；取消等 ORDER_STATUS 没有 orderId，不能当新订单跳转
 function handleReceiveOrder(arg) {
+	if (!arg || !arg.orderId || arg.code === 801) return;
 	console.log("收到订单：" + arg.orderId);
 	orderId = arg.orderId;
 	uni.redirectTo({ url: `/pages/order/detail/index?orderId=${orderId}` });

@@ -202,7 +202,7 @@
 <script setup>
 import { onLoad } from "@dcloudio/uni-app";
 import { ApiGetCurrentOrder, ApiPostToPickUpPassenger, ApiPostOrderCancel, ApiPostOrderPayInfo, ApiPostPassengerOff, ApiPostPickUpPassenger, ApiPostToDeparture, ApiGetOrderDetail,ApiGetCurrentOrderDetail, ApiGetOrderTrack } from "../../../api/order"
-import { HandleApiError, ShowToast } from "../../../utils";
+import { formatCoord, HandleApiError, ShowToast } from "../../../utils";
 import {ORDER_STATUS} from '../../../config/dicts'
 import BWebSocket from '../../../component/BWebSocket.vue';
 import BMap from '../../../component/BMap.vue';
@@ -245,6 +245,10 @@ function handleOrdermessage(arg){
 }
 const getCurrentOrderDetail = async () =>{
 	const {orderId: orderId} = $routerQuery;
+	if (!orderId || orderId === 'undefined' || orderId === 'null') {
+		uni.redirectTo({ url: '/pages/home/index' });
+		return;
+	}
     const {error, result} = await ApiGetCurrentOrderDetail({ orderId });
     if(!result.hasOwnProperty("code") && result !=null){
 		orderDetail.value = result;
@@ -442,8 +446,8 @@ const handleGrabOrder = async (item)=>{
     const {error, result} = await ApiPostToPickUpPassenger({
         orderId: orderDetail.value.id,
         toPickUpPassengerTime: _FormatDate(new Date(), 'yyyy-mm-dd hh:ii:ss'),
-        toPickUpPassengerLongitude: currentPoint.value.lng,
-        toPickUpPassengerLatitude: currentPoint.value.lat,
+        toPickUpPassengerLongitude: formatCoord(currentPoint.value.lng),
+        toPickUpPassengerLatitude: formatCoord(currentPoint.value.lat),
         toPickUpPassengerAddress: currentPoint.value.name
     });
     if(!HandleApiError(error)){
@@ -470,8 +474,8 @@ const handleToDeparture = async () => {
 const handlePickUpPassenger = async ()=>{
     const {error, result} = await ApiPostPickUpPassenger({
          orderId: orderDetail.value.id,
-         pickUpPassengerLongitude: currentPoint.value.lng,
-         pickUpPassengerLatitude: currentPoint.value.lat
+         pickUpPassengerLongitude: formatCoord(currentPoint.value.lng),
+         pickUpPassengerLatitude: formatCoord(currentPoint.value.lat)
     });
     if(!HandleApiError(error)){
         orderDetail.value.orderStatus = ORDER_STATUS.tripStart;
@@ -492,8 +496,8 @@ const handleTripFinish = async ()=>{
         // 测试使用的最后位置  
         // passengerGetoffLongitude: '119.541341',
         // passengerGetoffLatitude: '35.454809'
-        passengerGetoffLongitude: currentPoint.value.lng,
-        passengerGetoffLatitude: currentPoint.value.lat
+        passengerGetoffLongitude: formatCoord(currentPoint.value.lng),
+        passengerGetoffLatitude: formatCoord(currentPoint.value.lat)
     });
 	
 	let {error} = res;
