@@ -45,19 +45,19 @@ Thumbs.db
 **/dist/cache/
 
 # ===== Python Agent =====
-Agent/.venv/
-Agent/__pycache__/
-Agent/**/__pycache__/
-Agent/**/*.py[cod]
-Agent/*.egg-info/
-Agent/**/*.egg-info/
-Agent/.pytest_cache/
-Agent/.mypy_cache/
-Agent/.ruff_cache/
-Agent/data/
-Agent/*.db
-Agent/*.sqlite
-Agent/*.sqlite3
+agent/.venv/
+agent/__pycache__/
+agent/**/__pycache__/
+agent/**/*.py[cod]
+agent/*.egg-info/
+agent/**/*.egg-info/
+agent/.pytest_cache/
+agent/.mypy_cache/
+agent/.ruff_cache/
+agent/data/
+agent/*.db
+agent/*.sqlite
+agent/*.sqlite3
 
 # ===== 杂项 =====
 *.class

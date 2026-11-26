@@ -8,11 +8,11 @@
 
 | 端侧 | 工程 | 形态 |
 |------|------|------|
-| 乘客端 | `前端/passenger-uniapp` | uni-app（Android / H5） |
-| 司机端 | `前端/driver-uniapp` | uni-app（Android / H5） |
-| 管理端 | `前端/admin-vue3` | Vue3 Web |
-| 业务后端 | `后端/XunJiaChuXing` | Spring Cloud 微服务 |
-| AI 后端 | `Agent` | FastAPI + LangGraph |
+| 乘客端 | `frontend/passenger-uniapp` | uni-app（Android / H5） |
+| 司机端 | `frontend/driver-uniapp` | uni-app（Android / H5） |
+| 管理端 | `frontend/admin-vue3` | Vue3 Web |
+| 业务后端 | `backend/XunJiaChuXing` | Spring Cloud 微服务 |
+| AI 后端 | `agent` | FastAPI + LangGraph |
 | 数据层 | `sql` | MySQL 按服务分库 |
 
 ## 一、项目亮点
@@ -145,7 +145,7 @@
   /v1/ticket/chat → retrieve → answer（Qdrant RAG）
 ```
 
-> 两条链路的节点、Tool 清单与示意图见 **[七、Agent 工作流结构化展示](#七agent-工作流结构化展示)**（说明文档：`Agent/data/graphs/README.md`）。
+> 两条链路的节点、Tool 清单与示意图见 **[七、Agent 工作流结构化展示](#七agent-工作流结构化展示)**（说明文档：`agent/data/graphs/README.md`）。
 
 ---
 
@@ -487,18 +487,18 @@ flowchart TD
 
 ```
 讯家出行项目/
-├── 前端/
+├── frontend/
 │   ├── admin-vue3/          # Web 管理端（Vue3 + Element Plus）
 │   ├── passenger-uniapp/    # 乘客端（uni-app）
 │   └── driver-uniapp/       # 司机端（uni-app）
-├── 后端/
+├── backend/
 │   ├── XunJiaChuXing/       # Java 微服务父工程
 │   ├── docker-compose.yml
 │   └── Dockerfile
-├── Agent/                   # Python AI 工单 Agent（FastAPI + LangGraph）
+├── agent/                   # Python AI 工单 Agent（FastAPI + LangGraph）
 │   └── data/graphs/         # 工作流说明与导出拓扑
 ├── sql/                     # 分库脚本 + 全量脚本
-└── assets/                  # README 演示截图 / 动图（含 Agent/）
+└── assets/                  # README 演示截图 / 动图（含 assets/Agent/）
 ```
 
 ---
@@ -519,7 +519,7 @@ flowchart TD
 | `service-ai` | 8092 | AI 编排与会话 |
 | Python Agent | 18080 | LangGraph 协查 / RAG |
 
-**中间件依赖（本地/联调常见）**：Nacos、MySQL、Redis、RabbitMQ、Seata；Agent 另需 Embedding/LLM 密钥、Qdrant、Langfuse（按 `Agent` 配置）。
+**中间件依赖（本地/联调常见）**：Nacos、MySQL、Redis、RabbitMQ、Seata；Agent 另需 Embedding/LLM 密钥、Qdrant、Langfuse（按 `agent` 配置）。
 
 ---
 
