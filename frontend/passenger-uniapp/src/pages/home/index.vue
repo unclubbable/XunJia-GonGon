@@ -14,7 +14,7 @@
  * 乘客端首页（全屏地图 + 底部选点卡片）
  */
 import { computed, getCurrentInstance, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
-import { ApiGetCityList } from '../../api/city'
+import { ApiGetCityList, ApiRegeoCity, asText } from '../../api/city'
 import { useStore } from 'vuex'
 import BMap from '../../component/BMap.vue'
 import SelectPoint from './component/SelectPoint.vue'
@@ -148,24 +148,80 @@ async function requestLocationPermission() {
 	})
 }
 
+function matchCityByCode(list, cityCode) {
+	const code = asText(cityCode)
+	if (!list || !code) return null
+	return list.find((i) => {
+		const c = i.citycode
+		if (Array.isArray(c)) return c.map(String).includes(code)
+		return String(c) === code
+	}) || null
+}
+
+/** 用坐标补全市名：原生 geocode 在安卓上经常 address.city 为空 */
+async function resolveCityByLngLat(longitude, latitude, nativeAddress, cityList) {
+	const addr = nativeAddress || {}
+	let name = asText(addr.city) || asText(addr.province)
+	let cityCode = asText(addr.cityCode || addr.citycode)
+	let adcode = ''
+	let poiName = asText(addr.poiName)
+	let matched = matchCityByCode(cityList, cityCode)
+	if (matched) {
+		adcode = matched.adcode
+		if (!name) name = asText(matched.name)
+	}
+	if (!name || !cityCode) {
+		const { error, result: regeo } = await ApiRegeoCity(longitude, latitude)
+		if (!error && regeo) {
+			name = name || asText(regeo.name)
+			cityCode = cityCode || asText(regeo.cityCode)
+			adcode = adcode || asText(regeo.adcode)
+			poiName = poiName || asText(regeo.poiName)
+			matched = matchCityByCode(cityList, cityCode) || matched
+			if (matched) {
+				adcode = matched.adcode || adcode
+				name = name || asText(matched.name)
+			}
+		}
+	}
+	return {
+		name: name || asText(city.value.name) || '定位中',
+		cityCode: cityCode || city.value.cityCode || city.value.citycode || '',
+		adcode: adcode || (matched && matched.adcode) || city.value.adcode,
+		poiName
+	}
+}
+
 const getLocation = async () => {
 	requestLocationPermission()
-	const { result } = await ApiGetCityList()
+	const { result: cityList } = await ApiGetCityList()
 	uni.getLocation({
 		type: 'gcj02',
 		geocode: true,
-		success(res) {
+		async success(res) {
 			const { address, longitude, latitude, accuracy } = res
-			const matched = result && result.find(i => i.citycode === address.cityCode)
-			$store.commit('setCity', {
-				adcode: matched ? matched.adcode : city.value.adcode,
-				cityCode: address.cityCode,
-				name: address.city,
-				center: `${longitude},${latitude}`,
-				accuracy: `${accuracy}`,
-				locationRes: true,
-				poiName: address.poiName
-			})
+			try {
+				const resolved = await resolveCityByLngLat(longitude, latitude, address, cityList)
+				$store.commit('setCity', {
+					adcode: resolved.adcode,
+					cityCode: resolved.cityCode,
+					name: resolved.name,
+					center: `${longitude},${latitude}`,
+					accuracy: `${accuracy}`,
+					locationRes: true,
+					poiName: resolved.poiName
+				})
+			} catch (e) {
+				console.error('解析城市失败:', e)
+				// 至少保留坐标，避免把已有市名清空
+				$store.commit('setCity', {
+					...city.value,
+					center: `${longitude},${latitude}`,
+					accuracy: `${accuracy}`,
+					locationRes: true,
+					name: asText(city.value.name) || '定位中'
+				})
+			}
 		},
 		fail(err) {
 			console.error('获取位置信息失败:', err)
