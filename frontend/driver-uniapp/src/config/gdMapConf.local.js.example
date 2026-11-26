@@ -1,5 +1,11 @@
+// 复制本文件为 gdMapConf.local.js 并填写真实值（gdMapConf.local.js 已被 gitignore）
+// 本文件不是默认城市；默认城市在 gdMapConf.js 的 city。
+// Android 打基座 Key 见 manifest-local.txt。
 export default {
+    // JS API Key：地图组件加载高德 JS SDK
     key: 'YOUR_AMAP_WEB_KEY',
+    // 安全密钥：配合 key 使用
     securityJsCode: 'YOUR_AMAP_SECURITY_JS_CODE',
+    // Web 服务 Key：行政区划等 REST 接口
     cityKey: 'YOUR_AMAP_WEB_SERVICE_KEY'
 }

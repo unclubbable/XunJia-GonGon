@@ -7,9 +7,12 @@
 **/.env.*.local
 **/application-local.yml
 **/amap-android.local.txt
+**/manifest-local.txt
 **/gdMapConf.local.js
 **/amap.local.js
 **/local-secrets.*
+# 自定义基座/打包产物勿提交；本地 dist、unpackage 不要随便删（重打基座很费时间）
+
 APIKEY
 *.pem
 *.key
@@ -32,6 +35,8 @@ _msg.txt
 Thumbs.db
 *.swp
 *.log
+__MACOSX/
+**/__MACOSX/
 
 # ===== Java / Maven =====
 **/target/

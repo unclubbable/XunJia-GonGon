@@ -1,0 +1,10 @@
+# 复制本文件为 manifest-local.txt，填入真实 Key（manifest-local.txt 已被 gitignore）
+#
+# 本文件不会自动替换 src/manifest.json。
+# 打自定义基座 / 打包 APP 前，把 Key 手动写入 manifest.json 两处 appkey_android：
+#   - app-plus.distribute.sdkConfigs.maps.amap.appkey_android
+#   - app-plus.distribute.sdkConfigs.geolocation.amap.appkey_android
+# 包名须与 https://dev.dcloud.net.cn/ 中该应用一致；签名证书见 APPZhengShu。
+# 本地 dist/自定义基座勿删。
+
+YOUR_AMAP_ANDROID_KEY
