@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 9000
 
 spring:
@@ -24,6 +24,6 @@ spring:
   # 本服务不访问业务库；去掉无用 datasource，避免误连
 logging:
   level:
-    com.taxi.websocket: debug
+    com.xunjia.websocket: debug
   pattern:
     dateformat: HH:mm:ss:SSS

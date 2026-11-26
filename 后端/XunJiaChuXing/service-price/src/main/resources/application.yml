@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8084
 
 spring:
@@ -40,7 +40,7 @@ spring:
       keepalive-time: 30000   # 每30秒一次心跳
 logging:
   level:
-    com.taxi.price: debug
+    com.xunjia.price: debug
   pattern:
     dateformat: HH:mm:ss:SSS
 knife4j:
@@ -49,4 +49,4 @@ knife4j:
     group:
       default:
         api-rule-resources:
-          - com.taxi.price
+          - com.xunjia.price

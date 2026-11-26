@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8083
 
 spring:
@@ -54,7 +54,7 @@ spring:
         min-idle: 0
 logging:
   level:
-    com.taxi.passengerUser: debug
+    com.xunjia.passengerUser: debug
   pattern:
     dateformat: HH:mm:ss:SSS
 knife4j:

@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 7071
 spring:
   config:
@@ -158,7 +158,7 @@ spring:
             - StripPrefix=1
 logging:
   level:
-    com.taxi.gateweb: debug
+    com.xunjia.gateweb: debug
   pattern:
     dateformat: HH:mm:ss:SSS
 # 白名单：管理端仅登录相关放行；司机/乘客登录、支付回调不鉴权

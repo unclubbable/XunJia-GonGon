@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8085
 
 spring:
@@ -48,7 +48,7 @@ amap:
 # 备用高德配置请写在 application-local.yml
 logging:
   level:
-    com.taxi.map: debug
+    com.xunjia.map: debug
   pattern:
     dateformat: HH:mm:ss:SSS
 knife4j:
@@ -57,4 +57,4 @@ knife4j:
     group:
       default:
         api-rule-resources:
-          - com.taxi.map
+          - com.xunjia.map

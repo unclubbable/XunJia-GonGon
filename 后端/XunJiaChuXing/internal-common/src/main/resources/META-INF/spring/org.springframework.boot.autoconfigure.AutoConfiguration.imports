@@ -1,7 +1,7 @@
-com.taxi.common.config.MyHandler
-com.taxi.common.config.MvcConfig
-com.taxi.common.config.AliOssProperties
-com.taxi.common.config.AliyunSmsProperties
-com.taxi.common.util.Osspush
-com.taxi.common.util.Ossdelete
-com.taxi.common.util.SmsVerifyCodeSender
+com.xunjia.common.config.MyHandler
+com.xunjia.common.config.MvcConfig
+com.xunjia.common.config.AliOssProperties
+com.xunjia.common.config.AliyunSmsProperties
+com.xunjia.common.util.Osspush
+com.xunjia.common.util.Ossdelete
+com.xunjia.common.util.SmsVerifyCodeSender

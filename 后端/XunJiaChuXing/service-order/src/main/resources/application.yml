@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8087
 
 spring:
@@ -82,7 +82,7 @@ feign:
 #      id-type: 0
 logging:
   level:
-    com.taxi.order: debug
+    com.xunjia.order: debug
   pattern:
     dateformat: HH:mm:ss:SSS
 seata:
@@ -106,7 +106,7 @@ knife4j:
     group:
       default:
         api-rule-resources:
-          - com.taxi.order
+          - com.xunjia.order
 
 # 支付宝沙箱（真实密钥写在 application-local.yml）
 alipay:

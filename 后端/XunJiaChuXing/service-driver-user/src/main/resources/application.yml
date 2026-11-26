@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8086
 
 spring:
@@ -54,7 +54,7 @@ spring:
         min-idle: 0
 logging:
   level:
-    com.taxi.driverUser: debug
+    com.xunjia.driverUser: debug
   pattern:
     dateformat: HH:mm:ss:SSS
 mybatis-plus:
@@ -65,7 +65,7 @@ knife4j:
     group:
       default:
         api-rule-resources:
-          - com.taxi.driverUser
+          - com.xunjia.driverUser
 
 # 阿里云短信（公共工具 SmsVerifyCodeSender）
 aliyun:
